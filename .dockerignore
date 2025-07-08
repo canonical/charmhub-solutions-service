@@ -1,0 +1,28 @@
+.git
+.gitignore
+.github
+.venv
+.vscode
+
+README.md
+
+**/__pycache__/
+.pytest_cache/
+
+# docker 
+.dockerignore
+Dockerfile
+docker-compose.yaml
+
+# python
+*.pyc
+*.pyo
+*.pyd
+venv
+
+# Tests
+tests/
+
+# charm files
+charm/
+rockcraft.yaml
