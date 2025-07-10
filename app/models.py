@@ -1,4 +1,5 @@
 from datetime import datetime
+import enum
 from typing import Optional, List
 from sqlalchemy import (
     Integer,
@@ -8,9 +9,25 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     UniqueConstraint,
+    Enum,
+    Table,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app import db
+
+
+class PlatformTypes(enum.Enum):
+    KUBERNETES = "kubernetes"
+    MACHINE = "machine"
+
+
+# Association table for many-to-many between Solution and Maintainer
+solution_maintainer = Table(
+    "solution_maintainer",
+    db.Model.metadata,
+    db.Column("solution_id", ForeignKey("solution.id"), primary_key=True),
+    db.Column("maintainer_id", ForeignKey("maintainer.id"), primary_key=True),
+)
 
 
 class Solution(db.Model):
@@ -39,6 +56,28 @@ class Solution(db.Model):
         DateTime, default=datetime.now, onupdate=datetime.now
     )
 
+    # platform: "kubernetes" or "machine"
+    platform: Mapped[PlatformTypes] = mapped_column(Enum(PlatformTypes), nullable=False)
+    platform_version: Mapped[Optional[List[str]]] = mapped_column(
+        JSON
+    )  # list of platform version constraints
+    platform_prerequisites: Mapped[Optional[List[str]]] = mapped_column(
+        JSON
+    )  # list of platform prerequisites
+
+    # documentation links
+    documentation_main: Mapped[Optional[str]] = mapped_column(String)
+    documentation_source: Mapped[Optional[str]] = mapped_column(String)  # github source repo
+    get_started_url: Mapped[Optional[str]] = mapped_column(String)
+    how_to_operate_url: Mapped[Optional[str]] = mapped_column(String)
+    architecture_diagram_url: Mapped[Optional[str]] = mapped_column(String)
+    architecture_explanation: Mapped[Optional[str]] = mapped_column(Text)
+    submit_bug_url: Mapped[Optional[str]] = mapped_column(String)
+    community_discussion_url: Mapped[Optional[str]] = mapped_column(String)
+
+    # compatibility with juju versions
+    juju_versions: Mapped[Optional[List[str]]] = mapped_column(JSON)
+
     publisher_id: Mapped[str] = mapped_column(
         ForeignKey("publisher.publisher_id"), nullable=False
     )
@@ -47,20 +86,11 @@ class Solution(db.Model):
     use_cases: Mapped[Optional[List["UseCase"]]] = relationship(
         back_populates="solution", cascade="all, delete-orphan"
     )
-    deployable_on: Mapped["DeployableOn"] = relationship(
-        back_populates="solution", cascade="all, delete-orphan", uselist=False
-    )
-    documentation: Mapped[Optional["Documentation"]] = relationship(
-        back_populates="solution", cascade="all, delete-orphan", uselist=False
-    )
     charms: Mapped[List["Charm"]] = relationship(
         back_populates="solution", cascade="all, delete-orphan"
     )
-    compatibility: Mapped[Optional["Compatibility"]] = relationship(
-        back_populates="solution", cascade="all, delete-orphan"
-    )  # juju versions compatibility
-    maintainers: Mapped[Optional[List["Maintainer"]]] = relationship(
-        back_populates="solution", cascade="all, delete-orphan"
+    maintainers: Mapped[List["Maintainer"]] = relationship(
+        secondary=solution_maintainer, back_populates="solutions"
     )
     useful_links: Mapped[Optional[List["UsefulLink"]]] = relationship(
         back_populates="solution", cascade="all, delete-orphan"
@@ -96,71 +126,20 @@ class UseCase(db.Model):
     solution: Mapped["Solution"] = relationship(back_populates="use_cases")
 
 
-class DeployableOn(db.Model):
-    __tablename__ = "deployable_on"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    platform: Mapped[str] = mapped_column(
-        String, nullable=False
-    )  # kubernetes or machine
-    version: Mapped[Optional[List[str]]] = mapped_column(
-        JSON
-    )  # list of platform version constraints
-    prerequisites: Mapped[Optional[List[str]]] = mapped_column(
-        JSON
-    )  # list of platform prerequisites
-    solution_id: Mapped[int] = mapped_column(
-        ForeignKey("solution.id"), nullable=False
-    )
-
-    solution: Mapped["Solution"] = relationship(back_populates="deployable_on")
-
-
-class Documentation(db.Model):
-    __tablename__ = "documentation"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    main: Mapped[Optional[str]] = mapped_column(String)
-    source: Mapped[Optional[str]] = mapped_column(String)  # github source repo
-    get_started: Mapped[Optional[str]] = mapped_column(String)
-    how_to_operate: Mapped[Optional[str]] = mapped_column(String)
-    architecture_diagram: Mapped[Optional[str]] = mapped_column(
-        String
-    )  # URL to architecture diagram
-    architecture_explanation: Mapped[Optional[str]] = mapped_column(
-        Text
-    )  # markdown allowed
-    submit_a_bug: Mapped[Optional[str]] = mapped_column(String)
-    community_discussion: Mapped[Optional[str]] = mapped_column(String)
-    solution_id: Mapped[int] = mapped_column(
-        ForeignKey("solution.id"), nullable=False
-    )
-
-    solution: Mapped["Solution"] = relationship(back_populates="documentation")
-
-
 class Charm(db.Model):
     __tablename__ = "charm"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    charm_name: Mapped[str] = mapped_column(String, nullable=False)
+    charm_name: Mapped[str] = mapped_column(String, nullable=False)  # charm slug
     solution_id: Mapped[int] = mapped_column(
         ForeignKey("solution.id"), nullable=False
     )
 
     solution: Mapped["Solution"] = relationship(back_populates="charms")
 
-
-class Compatibility(db.Model):
-    __tablename__ = "compatibility"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    juju_versions: Mapped[Optional[List[str]]] = mapped_column(JSON)
-    solution_id: Mapped[int] = mapped_column(
-        ForeignKey("solution.id"), nullable=False
+    __table_args__ = (
+        UniqueConstraint("solution_id", "charm_name", name="_solution_charm_uc"),
     )
-
-    solution: Mapped["Solution"] = relationship(back_populates="compatibility")
 
 
 class Maintainer(db.Model):
@@ -169,11 +148,10 @@ class Maintainer(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     display_name: Mapped[str] = mapped_column(String, nullable=False)
     email: Mapped[str] = mapped_column(String, nullable=False)
-    solution_id: Mapped[int] = mapped_column(
-        ForeignKey("solution.id"), nullable=False
-    )
 
-    solution: Mapped["Solution"] = relationship(back_populates="maintainers")
+    solutions: Mapped[List["Solution"]] = relationship(
+        secondary=solution_maintainer, back_populates="maintainers"
+    )
 
 
 class UsefulLink(db.Model):
