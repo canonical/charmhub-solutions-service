@@ -16,6 +16,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app import db
 
 
+class SolutionStatus(enum.Enum):
+    PENDING = "pending"  # publisher registers name, reviewer hasn't approved
+    UNPUBLISHED = "unpublished"  # reviewer approved but metadata not submitted
+    PENDING_REVIEW = "pending_review"  # metadata submitted for review
+    PUBLISHED = "published"  # solution publicly visible
+
+
 class PlatformTypes(enum.Enum):
     KUBERNETES = "kubernetes"
     MACHINE = "machine"
@@ -37,11 +44,13 @@ class Solution(db.Model):
         Integer, primary_key=True
     )  # unique ID because we will publish multiple versions of the same solution
     solution_name: Mapped[str] = mapped_column(String, nullable=False)  # slug
-    display_name: Mapped[str] = mapped_column(String, nullable=False)
+    display_name: Mapped[str] = mapped_column(
+        String, nullable=False
+    )  # title case name of soltuion
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     short_description: Mapped[Optional[str]] = mapped_column(
-        Text
-    )  # markdown allowed
+        String
+    )  # no markdown allowed
     long_description: Mapped[Optional[str]] = mapped_column(
         Text
     )  # markdown allowed
@@ -56,8 +65,15 @@ class Solution(db.Model):
         DateTime, default=datetime.now, onupdate=datetime.now
     )
 
+    # solution status
+    status: Mapped[SolutionStatus] = mapped_column(
+        Enum(SolutionStatus), nullable=False, default=SolutionStatus.PENDING
+    )
+
     # platform: "kubernetes" or "machine"
-    platform: Mapped[PlatformTypes] = mapped_column(Enum(PlatformTypes), nullable=False)
+    platform: Mapped[PlatformTypes] = mapped_column(
+        Enum(PlatformTypes), nullable=False
+    )
     platform_version: Mapped[Optional[List[str]]] = mapped_column(
         JSON
     )  # list of platform version constraints
@@ -67,7 +83,9 @@ class Solution(db.Model):
 
     # documentation links
     documentation_main: Mapped[Optional[str]] = mapped_column(String)
-    documentation_source: Mapped[Optional[str]] = mapped_column(String)  # github source repo
+    documentation_source: Mapped[Optional[str]] = mapped_column(
+        String
+    )  # github source repo
     get_started_url: Mapped[Optional[str]] = mapped_column(String)
     how_to_operate_url: Mapped[Optional[str]] = mapped_column(String)
     architecture_diagram_url: Mapped[Optional[str]] = mapped_column(String)
@@ -130,7 +148,9 @@ class Charm(db.Model):
     __tablename__ = "charm"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    charm_name: Mapped[str] = mapped_column(String, nullable=False)  # charm slug
+    charm_name: Mapped[str] = mapped_column(
+        String, nullable=False
+    )  # charm slug
     solution_id: Mapped[int] = mapped_column(
         ForeignKey("solution.id"), nullable=False
     )
@@ -138,7 +158,9 @@ class Charm(db.Model):
     solution: Mapped["Solution"] = relationship(back_populates="charms")
 
     __table_args__ = (
-        UniqueConstraint("solution_id", "charm_name", name="_solution_charm_uc"),
+        UniqueConstraint(
+            "solution_id", "charm_name", name="_solution_charm_uc"
+        ),
     )
 
 
