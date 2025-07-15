@@ -42,12 +42,12 @@ class Solution(db.Model):
 
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True
-    )  # unique ID because we will publish multiple versions of the same solution
+    )  # unique ID because we will publish multiple revisions of the same solution
     name: Mapped[str] = mapped_column(String, nullable=False)  # slug
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
     title: Mapped[str] = mapped_column(
         String, nullable=False
     )  # title case name of soltuion
-    version: Mapped[int] = mapped_column(Integer, nullable=False)
     summary: Mapped[Optional[str]] = mapped_column(
         String
     )  # no markdown allowed
@@ -116,7 +116,7 @@ class Solution(db.Model):
 
     __table_args__ = (
         UniqueConstraint(
-            "name", "version", name="_solution_version_uc"
+            "name", "revision", name="_solution_revision_uc"
         ),
     )
 
