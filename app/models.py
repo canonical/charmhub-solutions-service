@@ -43,22 +43,22 @@ class Solution(db.Model):
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True
     )  # unique ID because we will publish multiple versions of the same solution
-    solution_name: Mapped[str] = mapped_column(String, nullable=False)  # slug
-    display_name: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(String, nullable=False)  # slug
+    title: Mapped[str] = mapped_column(
         String, nullable=False
     )  # title case name of soltuion
     version: Mapped[int] = mapped_column(Integer, nullable=False)
-    short_description: Mapped[Optional[str]] = mapped_column(
+    summary: Mapped[Optional[str]] = mapped_column(
         String
     )  # no markdown allowed
-    long_description: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[Optional[str]] = mapped_column(
         Text
     )  # markdown allowed
     terraform_modules: Mapped[Optional[str]] = mapped_column(
         String
     )  # URL to terraform modules
     icon: Mapped[Optional[str]] = mapped_column(String)  # URL to icon
-    created_at: Mapped[datetime] = mapped_column(
+    created: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now
     )
     last_updated: Mapped[datetime] = mapped_column(
@@ -116,7 +116,7 @@ class Solution(db.Model):
 
     __table_args__ = (
         UniqueConstraint(
-            "solution_name", "version", name="_solution_version_uc"
+            "name", "version", name="_solution_version_uc"
         ),
     )
 
