@@ -33,6 +33,12 @@ class Visibility(enum.Enum):
     PRIVATE = "private"
 
 
+class ReviewerActionType(enum.Enum):
+    APPROVE_REGISTRATION = "approve_registration"
+    PUBLISH = "publish"
+    UNPUBLISH = "unpublish"
+
+
 # Association table for many-to-many between Solution and Maintainer
 solution_maintainer = Table(
     "solution_maintainer",
@@ -203,12 +209,10 @@ class ReviewAction(db.Model):
     reviewer_id: Mapped[str] = mapped_column(
         String, nullable=False
     )  # Launchpad username
-    action: Mapped[str] = mapped_column(
-        String, nullable=False
-    )  # 'approve_registration', 'publish', etc.
-    comment: Mapped[Optional[str]] = mapped_column(
-        Text
-    )  # optional reason or comment
+    action: Mapped[ReviewerActionType] = mapped_column(
+        Enum(ReviewerActionType), nullable=False
+    )
+    comment: Mapped[Optional[str]] = mapped_column(Text)  # optional comment
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     solution: Mapped["Solution"] = relationship(backref="review_actions")
