@@ -28,6 +28,11 @@ class PlatformTypes(enum.Enum):
     MACHINE = "machine"
 
 
+class Visibility(enum.Enum):
+    PUBLIC = "public"
+    PRIVATE = "private"
+
+
 # Association table for many-to-many between Solution and Maintainer
 solution_maintainer = Table(
     "solution_maintainer",
@@ -58,9 +63,7 @@ class Solution(db.Model):
         String
     )  # URL to terraform modules
     icon: Mapped[Optional[str]] = mapped_column(String)  # URL to icon
-    created: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now
-    )
+    created: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     last_updated: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now, onupdate=datetime.now
     )
@@ -113,11 +116,12 @@ class Solution(db.Model):
     useful_links: Mapped[Optional[List["UsefulLink"]]] = relationship(
         back_populates="solution", cascade="all, delete-orphan"
     )
+    visibility: Mapped[Visibility] = mapped_column(
+        Enum(Visibility), nullable=False, default=Visibility.PUBLIC
+    )
 
     __table_args__ = (
-        UniqueConstraint(
-            "name", "revision", name="_solution_revision_uc"
-        ),
+        UniqueConstraint("name", "revision", name="_solution_revision_uc"),
     )
 
 
@@ -187,3 +191,24 @@ class UsefulLink(db.Model):
     )
 
     solution: Mapped["Solution"] = relationship(back_populates="useful_links")
+
+
+class ReviewAction(db.Model):
+    __tablename__ = "review_action"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    solution_id: Mapped[int] = mapped_column(
+        ForeignKey("solution.id"), nullable=False
+    )
+    reviewer_id: Mapped[str] = mapped_column(
+        String, nullable=False
+    )  # Launchpad username
+    action: Mapped[str] = mapped_column(
+        String, nullable=False
+    )  # 'approve_registration', 'publish', etc.
+    comment: Mapped[Optional[str]] = mapped_column(
+        Text
+    )  # optional reason or comment
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    solution: Mapped["Solution"] = relationship(backref="review_actions")
