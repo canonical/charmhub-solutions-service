@@ -28,6 +28,7 @@ class PlatformTypes(enum.Enum):
     MACHINE = "machine"
 
 
+# private solutions are only visible to the publisher and maintainers
 class Visibility(enum.Enum):
     PUBLIC = "public"
     PRIVATE = "private"
@@ -56,6 +57,9 @@ class Solution(db.Model):
     )  # unique ID because we will publish multiple revisions of the same solution
     name: Mapped[str] = mapped_column(String, nullable=False)  # slug
     revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_by: Mapped[str] = mapped_column(
+        String, nullable=False
+    )  # Launchpad username
     title: Mapped[str] = mapped_column(
         String, nullable=False
     )  # title case name of soltuion
@@ -172,6 +176,14 @@ class Charm(db.Model):
             "solution_id", "charm_name", name="_solution_charm_uc"
         ),
     )
+
+
+"""
+A Maintainer will be a manually entered field by the publisher,
+and will determine the point(s) of contact for the solution.
+All members of the Launchpad group will still be able to edit the solution
+even if they are not listed as Maintainers.
+"""
 
 
 class Maintainer(db.Model):
