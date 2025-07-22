@@ -52,7 +52,11 @@ def seed_database():
                     {
                         "platform": "kubernetes",
                         "version": [">= 1.19.0"],
-                        "prerequisites": ["dns", "hostpath-storage", "metallb"],
+                        "prerequisites": [
+                            "dns",
+                            "hostpath-storage",
+                            "metallb",
+                        ],
                     }
                 ],
                 "created": "2025-05-22T12:00:00Z",
@@ -84,8 +88,14 @@ def seed_database():
                 ],
                 "compatibility": {"juju_versions": [">=3.0"]},
                 "maintainers": [
-                    {"display_name": "maintainerA", "email": "a@canonical.com"},
-                    {"display_name": "maintainerB", "email": "b@canonical.com"},
+                    {
+                        "display_name": "maintainerA",
+                        "email": "a@canonical.com",
+                    },
+                    {
+                        "display_name": "maintainerB",
+                        "email": "b@canonical.com",
+                    },
                 ],
                 "useful_links": [
                     {
@@ -133,7 +143,11 @@ def seed_database():
                     },
                 ],
                 "deployable-on": [
-                    {"platform": "kubernetes", "version": [">= 1.25"], "prerequisites": []}
+                    {
+                        "platform": "kubernetes",
+                        "version": [">= 1.25"],
+                        "prerequisites": [],
+                    }
                 ],
                 "created": "2025-07-02T12:00:00Z",
                 "last_updated": "2025-07-02T12:00:00Z",
@@ -166,12 +180,24 @@ def seed_database():
                 ],
                 "compatibility": {"juju_versions": [">=3.0.3"]},
                 "maintainers": [
-                    {"display_name": "maintainerA", "email": "a@canonical.com"},
-                    {"display_name": "maintainerB", "email": "b@canonical.com"},
+                    {
+                        "display_name": "maintainerA",
+                        "email": "a@canonical.com",
+                    },
+                    {
+                        "display_name": "maintainerB",
+                        "email": "b@canonical.com",
+                    },
                 ],
                 "useful_links": [
-                    {"title": "Source Code", "url": "https://github.com/canonical/telco/"},
-                    {"title": "Report a Bug", "url": "https://github.com/canonical/telco"},
+                    {
+                        "title": "Source Code",
+                        "url": "https://github.com/canonical/telco/",
+                    },
+                    {
+                        "title": "Report a Bug",
+                        "url": "https://github.com/canonical/telco",
+                    },
                     {
                         "title": "Community Discussion",
                         "url": "https://discourse.telco.io",
@@ -209,7 +235,11 @@ def seed_database():
                     },
                 ],
                 "deployable-on": [
-                    {"platform": "kubernetes", "version": [">= 1.12"], "prerequisites": []}
+                    {
+                        "platform": "kubernetes",
+                        "version": [">= 1.12"],
+                        "prerequisites": [],
+                    }
                 ],
                 "created": "2025-03-02T12:00:00Z",
                 "last_updated": "2025-06-24T12:00:00Z",
@@ -263,8 +293,14 @@ def seed_database():
                 ],
                 "compatibility": {"juju_versions": [">=3.1.0"]},
                 "maintainers": [
-                    {"display_name": "maintainerA", "email": "a@canonical.com"},
-                    {"display_name": "maintainerB", "email": "b@canonical.com"},
+                    {
+                        "display_name": "maintainerA",
+                        "email": "a@canonical.com",
+                    },
+                    {
+                        "display_name": "maintainerB",
+                        "email": "b@canonical.com",
+                    },
                 ],
                 "useful_links": [
                     {
@@ -303,7 +339,9 @@ def seed_database():
 
             maintainers = []
             for m in data["maintainers"]:
-                maintainer = Maintainer.query.filter_by(email=m["email"]).first()
+                maintainer = Maintainer.query.filter_by(
+                    email=m["email"]
+                ).first()
                 if not maintainer:
                     maintainer = Maintainer(
                         display_name=m["display_name"], email=m["email"]
@@ -321,22 +359,30 @@ def seed_database():
                 description=data["description"],
                 terraform_modules=data["terraform_modules"],
                 icon=data["media"]["icon"],
-                created=datetime.fromisoformat(data["created"].replace("Z", "+00:00")),
+                created=datetime.fromisoformat(
+                    data["created"].replace("Z", "+00:00")
+                ),
                 last_updated=datetime.fromisoformat(
                     data["last_updated"].replace("Z", "+00:00")
                 ),
                 status=SolutionStatus.PUBLISHED,
                 platform=PlatformTypes.KUBERNETES,
                 platform_version=data["deployable-on"][0]["version"],
-                platform_prerequisites=data["deployable-on"][0]["prerequisites"],
+                platform_prerequisites=data["deployable-on"][0][
+                    "prerequisites"
+                ],
                 documentation_main=data["documentation"]["main"],
                 documentation_source=data["documentation"]["source"],
                 get_started_url=data["documentation"]["get_started"],
                 how_to_operate_url=data["documentation"]["how_to_operate"],
                 architecture_diagram_url=data["media"]["architecture_diagram"],
-                architecture_explanation=data["documentation"]["architecture_explanation"],
+                architecture_explanation=data["documentation"][
+                    "architecture_explanation"
+                ],
                 submit_bug_url=data["documentation"]["submit_a_bug"],
-                community_discussion_url=data["documentation"]["community_discussion"],
+                community_discussion_url=data["documentation"][
+                    "community_discussion"
+                ],
                 juju_versions=data["compatibility"]["juju_versions"],
                 publisher_id=publisher.publisher_id,
                 maintainers=maintainers,
@@ -347,7 +393,9 @@ def seed_database():
             db.session.commit()
 
             for charm_data in data["charms"]:
-                charm = Charm(charm_name=charm_data["name"], solution_id=solution.id)
+                charm = Charm(
+                    charm_name=charm_data["name"], solution_id=solution.id
+                )
                 db.session.add(charm)
 
             for use_case_data in data["use_cases"]:

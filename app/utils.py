@@ -38,4 +38,3 @@ def serialize_solution(solution: Solution) -> dict:
         "maintainers": [m.to_dict() for m in solution.maintainers],
         "useful_links": [ul.to_dict() for ul in solution.useful_links],
     }
-
