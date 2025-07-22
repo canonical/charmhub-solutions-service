@@ -31,7 +31,7 @@ docker compose exec solutions-service flask db upgrade
 Run the seed script inside the `solutions-service` container:
 
 ```bash
-docker-compose exec solutions-service python seed.py
+docker-compose exec solutions-service python tests/seed.py
 ```
 
 This will populate the database with mock data.
