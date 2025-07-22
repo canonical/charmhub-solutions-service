@@ -40,6 +40,13 @@ This will populate the database with mock data.
 
 The application is now running and accessible at `http://localhost:5000`.
 
+### 5. Running tests
+
+To run the tests, use the following command:
+
+```bash
+docker compose exec solutions-service python3 -m pytest tests/
+```
 
 ### Stopping the service
 
