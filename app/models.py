@@ -13,7 +13,7 @@ from sqlalchemy import (
     Table,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app import db
+from app.extensions import db
 
 
 class SolutionStatus(enum.Enum):
@@ -157,6 +157,13 @@ class UseCase(db.Model):
 
     solution: Mapped["Solution"] = relationship(back_populates="use_cases")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+        }
+
 
 class Charm(db.Model):
     __tablename__ = "charm"
@@ -176,6 +183,12 @@ class Charm(db.Model):
             "solution_id", "charm_name", name="_solution_charm_uc"
         ),
     )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "charm_name": self.charm_name,
+        }
 
 
 """
@@ -197,6 +210,13 @@ class Maintainer(db.Model):
         secondary=solution_maintainer, back_populates="maintainers"
     )
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "display_name": self.display_name,
+            "email": self.email,
+        }
+
 
 class UsefulLink(db.Model):
     __tablename__ = "useful_link"
@@ -209,6 +229,13 @@ class UsefulLink(db.Model):
     )
 
     solution: Mapped["Solution"] = relationship(back_populates="useful_links")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "url": self.url,
+        }
 
 
 class ReviewAction(db.Model):

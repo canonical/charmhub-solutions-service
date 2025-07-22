@@ -1,14 +1,21 @@
-version: '3.8'
-
 services:
   solutions-service:
     build: .
     ports:
       - "5000:5000"
-    environment:
-      - DATABASE_URL=sqlite:///solutions.db
+    env_file: .env
+    depends_on:
+      - db
     volumes:
       - .:/app
+
+  db:
+    image: postgres:latest
+    env_file: .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
   postgres_data:

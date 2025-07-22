@@ -1,19 +1,24 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from config import Config
-
-db = SQLAlchemy()
+from app.extensions import db, migrate
+from app.public.api import public_bp
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    @app.route("/")
+    def index():
+        return "Charmhub Solutions API - Copyright 2025 Canonical"
+
     db.init_app(app)
+    migrate.init_app(app, db)
 
     with app.app_context():
-        from app import routes, models
-
-        db.create_all()
+        app.register_blueprint(public_bp, url_prefix="/api")
 
     return app
+
+
+app = create_app()
