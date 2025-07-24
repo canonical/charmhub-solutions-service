@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "macros.html" import solution_table %}
 {% block title %}Dashboard{% endblock %}
 {% block meta_title %}Dashboard{% endblock %}
 {% block page_content %}
@@ -8,26 +9,10 @@
         </div>
         <div class="p-panel__content">
             <div class="u-fixed-width">
-            <h5>All solutions</h5>
-            <table aria-label="Vanilla framework table example">
-              <thead>
-                  <tr>
-                  <th>Solution name</th>
-                  <th>Publisher</th>
-                  <th>Status</th>
-                  </tr>
-              </thead>
-              <tbody>
-                {% for solution in solutions %}
-                <tr>
-                    <td><a href="https://charmhub.io/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a></td>
-                    <td><a href="https://charmhub.io/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
-                    <td><code>{{ solution.status | upper }}</code></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-
-            </table>
+            {{ solution_table(published_solutions, "Published Solutions") }}
+            {{ solution_table(pending_review_solutions, "Pending Review Solutions") }}
+            {{ solution_table(unpublished_solutions, "Unpublished Solutions") }}
+            {{ solution_table(pending_solutions, "Pending Solutions") }}
             </div>
         </div>
     </div>
