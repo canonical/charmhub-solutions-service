@@ -4,7 +4,31 @@
 {% block page_content %}
     <div class="p-panel">
         <div class="p-panel__header">
-            <h4 class="p-panel__title">Dashboard</h4>
+            <h4 class="p-panel__title">Charmhub Solutions Dashboard</h4>
+        </div>
+        <div class="p-panel__content">
+            <div class="u-fixed-width">
+            <h5>All solutions</h5>
+            <table aria-label="Vanilla framework table example">
+              <thead>
+                  <tr>
+                  <th>Solution name</th>
+                  <th>Publisher</th>
+                  <th>Status</th>
+                  </tr>
+              </thead>
+              <tbody>
+                {% for solution in solutions %}
+                <tr>
+                    <td><a href="https://charmhub.io/solutions/{{ solution.name }}">{{ solution.title }}</a></td>
+                    <td><a href="https://charmhub.io/publisher/{{ solution.publisher_username }}">{{ solution.publisher_display_name }}</a></td>
+                    <td><code>{{ solution.status | upper }}</code></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+            </table>
+            </div>
         </div>
     </div>
 {% endblock %}
