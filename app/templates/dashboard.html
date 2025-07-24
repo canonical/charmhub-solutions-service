@@ -20,8 +20,8 @@
               <tbody>
                 {% for solution in solutions %}
                 <tr>
-                    <td><a href="https://charmhub.io/solutions/{{ solution.name }}">{{ solution.title }}</a></td>
-                    <td><a href="https://charmhub.io/publisher/{{ solution.publisher_username }}">{{ solution.publisher_display_name }}</a></td>
+                    <td><a href="https://charmhub.io/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a></td>
+                    <td><a href="https://charmhub.io/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
                     <td><code>{{ solution.status | upper }}</code></td>
                 </tr>
                 {% endfor %}
