@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block meta_title %}
+  Dashboard
+{% endblock %}
+{% block content %}
+<style>
+   .logo-text {
+   color: #fff;
+   left: 15px;
+   top: 10px;
+   position: relative;
+   }
+</style>
+<div class="l-application" role="presentation">
+   <div class="l-navigation-bar">
+      <div class="p-panel is-dark">
+         <div class="p-panel__header">
+            <a class="p-panel__logo" href="#">
+               <img src="https://assets.ubuntu.com/v1/6e94860c-menu-icon--product-juju.svg"
+                  alt="Charmhub"
+                  style="height: 35px" />
+               <div class="logo-text is-fading-when-collapsed">
+                  <h4>Charmhub Solutions</h4>
+               </div>
+            </a>
+         </div>
+      </div>
+   </div>
+   <header class="l-navigation is-collapsed">
+      <div class="l-navigation__drawer">
+         <div class="p-panel is-dark">
+            <div class="p-panel__header is-sticky">
+               <div class="p-panel__logo">
+                  <img src="https://assets.ubuntu.com/v1/6e94860c-menu-icon--product-juju.svg"
+                     alt="Charmhub"
+                     class="p-panel__logo-image"
+                     style="height: 35px" />
+                  <div class="logo-text is-fading-when-collapsed">
+                     <h5 class="u-no-padding--top">Charmhub Solutions</h5>
+                  </div>
+               </div>
+               <div class="p-panel__controls u-hide--large">
+                  <button class="p-button--base is-dark has-icon u-no-margin u-hide--medium js-menu-close">
+                  <i class="is-light p-icon--close"></i>
+                  </button>
+                  <button class="p-button--base is-dark has-icon u-no-margin u-hide--small js-menu-pin">
+                  <i class="is-light p-icon--pin"></i>
+                  </button>
+               </div>
+            </div>
+            <div class="p-panel__content">
+               <div class="p-side-navigation--icons" id="drawer-icons">
+                  <nav aria-label="Main">
+                     <ul class="p-side-navigation__list">
+                        <li class="p-side-navigation__item">
+                           <a class="p-side-navigation__link"
+                              aria-current="{% if request.path == '/' %}page{% endif %}"
+                              href="/"><i class="p-icon--information is-light p-side-navigation__icon"></i>
+                           <span class="p-side-navigation__label"><span class="p-side-navigation__label">Dashboard</span></span></a>
+                        </li>
+                    </ul>
+                  </nav>
+               </div>
+            </div>
+         </div>
+      </div>
+   </header>
+   <main class="l-main">
+      {% block page_header %}{% endblock %}
+      {% block page_content %}{% endblock %}
+   </main>
+</div>
+<style>
+   .l-main > .p-panel {
+   padding: 20px;
+   }
+</style>
+{% endblock %}

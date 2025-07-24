@@ -12,35 +12,19 @@ These instructions explain how to set up the project for local development and t
 
 ### 1. Build and run the service
 
-Clone the repository, build the images and start the application and database containers in the background:
+Clone the repository, build the images and start the application and database containers:
 
 ```bash
 docker compose up --build -d
 ```
 
-### 2. Database migrations
+This will also set up migrations and seed the database with mock data via the `entrypoint.sh` script.
 
-With the Docker container running, execute the database migrations inside the `solutions-service` container to set up the required tables:
-
-```bash
-docker compose exec solutions-service flask db upgrade
-```
-
-### 3. Seed the database
-
-Run the seed script inside the `solutions-service` container:
-
-```bash
-docker-compose exec solutions-service python tests/seed.py
-```
-
-This will populate the database with mock data.
-
-### 4. Accessing the application
+### 2. Accessing the application
 
 The application is now running and accessible at `http://localhost:5000`.
 
-### 5. Running tests
+### 3. Running tests
 
 To run the tests, use the following command:
 
@@ -48,7 +32,7 @@ To run the tests, use the following command:
 docker compose exec solutions-service python3 -m pytest tests/
 ```
 
-### Stopping the service
+### 4. Stopping the service
 
 To stop the Docker container, use:
 

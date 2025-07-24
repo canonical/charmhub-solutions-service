@@ -1,0 +1,36 @@
+{% macro solution_table(solutions, title) %}
+  <h5>{{ title }} ({{ solutions | length }})</h5>
+  <table aria-label="{{ title | lower }} solutions table">
+    <thead>
+        <tr>
+          <th>Solution name</th>
+          <th>Publisher</th>
+          <th>Status</th>
+        </tr>
+    </thead>
+    {% if solutions %}
+      <tbody>
+        {% for solution in solutions %}
+        <tr>
+            <td><a href="https://charmhub.io/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a></td>
+            <td><a href="https://charmhub.io/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
+            <td><code>{{ solution.status | upper }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    {% else %}
+      <caption>
+        <div class="p-strip">
+          <div class="row">
+            <div class="u-align--right col-4 col-medium-2 col-small-1">
+              <img src="https://assets.ubuntu.com/v1/3234f995-Generic_chamhub_NoDocs.svg" alt="empty state" style="height: 50px;">
+            </div>
+            <div class="u-align--left col-8 col-medium-4 col-small-3">
+              <p class="u-vertical-align--middle">No {{ title }}</p>
+            </div>
+          </div>
+        </div>
+      </caption>
+    {% endif %}
+  </table>
+{% endmacro %}
