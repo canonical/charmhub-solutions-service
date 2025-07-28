@@ -1,11 +1,4 @@
-from flask import jsonify
 from app.models import Solution
-
-
-def login_redirect_response():
-    # SSO auth logic here
-    return jsonify({"message": "Redirect to Ubuntu SSO login"}), 302
-
 
 def serialize_solution(solution: Solution) -> dict:
     return {
