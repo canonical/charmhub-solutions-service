@@ -3,7 +3,7 @@ import hashlib
 import time
 import os
 from functools import wraps
-from flask import request, abort
+from flask import request, abort, g
 import jwt
 
 HMAC_SECRET_KEY = os.environ.get("HMAC_SECRET_KEY")
@@ -14,7 +14,6 @@ TOKEN_EXPIRATION = 300  # 5 minutes
 
 
 def verify_signature(username, timestamp, signature):
-    print(HMAC_SECRET_KEY)
     try:
         message = f"{username}|{timestamp}".encode()
         expected = hmac.new(HMAC_SECRET_KEY.encode(), message, hashlib.sha256).hexdigest()
@@ -29,7 +28,6 @@ def verify_signature(username, timestamp, signature):
     except Exception:
         return False
 
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -40,6 +38,11 @@ def login_required(f):
         token = auth_header.split(" ")[1]
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            g.user = {
+                "username": payload["sub"],
+                "teams": payload.get("teams", [])
+            }
+
         except jwt.ExpiredSignatureError:
             abort(401, description="Token expired")
         except jwt.InvalidTokenError:
@@ -47,8 +50,4 @@ def login_required(f):
 
         return f(*args, **kwargs)
     return decorated_function
-
-
-
-
 

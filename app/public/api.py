@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify,g 
 from app.public.logic import (
     get_all_published_solutions,
     get_published_solution_by_name,
@@ -51,22 +51,9 @@ def login():
 @public_bp.route("/me", methods=["GET"])
 @login_required
 def get_current_user():
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return jsonify({"error": "Missing or invalid Authorization header"}), 401
-
-    token = auth_header.split(" ")[1]
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token expired"}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({"error": "Invalid token"}), 401
-
-    return jsonify({
-        "username": payload["sub"],
-        "teams": payload.get("teams", [])
-    }), 200
+    return jsonify( {
+            "user": g.user
+        }), 200
 
 @public_bp.route("/solutions", methods=["GET"])
 def list_published_solutions():
