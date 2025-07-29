@@ -16,7 +16,7 @@ TOKEN_EXPIRATION = 300  # 5 minutes
 def verify_signature(username, timestamp, signature):
     try:
         message = f"{username}|{timestamp}".encode()
-        expected = hmac.new(HMAC_SECRET_KEY.encode(), message, hashlib.sha256).hexdigest()
+        expected = hmac.new(HMAC_SECRET_KEY.encode(), message, hashlib.blake2b).hexdigest()
 
         if not hmac.compare_digest(expected, signature):
             return False
@@ -28,6 +28,17 @@ def verify_signature(username, timestamp, signature):
     except Exception:
         return False
 
+
+def decode_jwt_token(token):
+    """Decode and validate the JWT token."""
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        abort(401, description="Token expired")
+    except jwt.InvalidTokenError:
+        abort(401, description="Invalid token")
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -36,17 +47,12 @@ def login_required(f):
             abort(401, description="Missing or invalid Authorization header")
 
         token = auth_header.split(" ")[1]
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            g.user = {
-                "username": payload["sub"],
-                "teams": payload.get("teams", [])
-            }
+        payload = decode_jwt_token(token)
 
-        except jwt.ExpiredSignatureError:
-            abort(401, description="Token expired")
-        except jwt.InvalidTokenError:
-            abort(401, description="Invalid token")
+        g.user = {
+            "username": payload["sub"],
+            "teams": payload.get("teams", [])
+        }
 
         return f(*args, **kwargs)
     return decorated_function
