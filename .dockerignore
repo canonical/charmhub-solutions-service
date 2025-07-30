@@ -20,9 +20,6 @@ docker-compose.yaml
 *.pyd
 venv
 
-# Tests
-tests/
-
 # charm files
 charm/
 rockcraft.yaml

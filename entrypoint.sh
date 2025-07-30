@@ -10,4 +10,4 @@ flask db upgrade
 python -m tests.seed
 
 # Start the application
-flask run --host=0.0.0.0
+flask run --host=$1 --port=$2
