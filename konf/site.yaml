@@ -1,0 +1,9 @@
+domain: solutions.charmhub.io
+
+image: prod-comms.ps5.docker-registry.canonical.com/charmhub-solutions
+
+env:
+  - name: POSTGRESQL_DB_CONNECT_STRING
+    secretKeyRef:
+      key: postgresql-db-connect-string
+      name: charmhub-solutions
