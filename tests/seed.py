@@ -365,7 +365,7 @@ def seed_database():
                 last_updated=datetime.fromisoformat(
                     data["last_updated"].replace("Z", "+00:00")
                 ),
-                status=SolutionStatus.PENDING_REVIEW
+                status=SolutionStatus.PENDING_METADATA_REVIEW
                 if data["id"] == 3
                 else SolutionStatus.PUBLISHED,
                 platform=PlatformTypes.KUBERNETES,
@@ -418,7 +418,7 @@ def seed_database():
 
             db.session.commit()
 
-        # Add a solution with pending status
+        # Add a solution with pending_name_review status
         identity_platform_publisher = Publisher.query.filter_by(username="identity-platform").first()
         if not identity_platform_publisher:
             identity_platform_publisher = Publisher(
@@ -429,16 +429,16 @@ def seed_database():
             db.session.add(identity_platform_publisher)
             db.session.commit()
 
-        pending_solution = Solution(
+        pending_name_review_solution = Solution(
             name="canonical-identity-solution",
             revision=1,
             created_by=identity_platform_publisher.username,
             title="Canonical Identity Solution",
-            status=SolutionStatus.PENDING,
+            status=SolutionStatus.PENDING_NAME_REVIEW,
             publisher_id=identity_platform_publisher.publisher_id,
             platform=PlatformTypes.KUBERNETES,
         )
-        db.session.add(pending_solution)
+        db.session.add(pending_name_review_solution)
         db.session.commit()
 
         print("Database seeded successfully")
