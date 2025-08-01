@@ -23,6 +23,7 @@ def dashboard():
             "status": solution.status.value,
             "publisher_username": solution.publisher.username,
             "publisher_display_name": solution.publisher.display_name,
+            "hash": solution.hash,
         }
         if solution.status == SolutionStatus.PUBLISHED:
             published_solutions.append(solution_data)
