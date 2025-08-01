@@ -18,3 +18,4 @@ COPY entrypoint.sh .
 
 
 ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["0.0.0.0", "80"]

@@ -4,6 +4,9 @@ services:
     ports:
       - "5000:5000"
     env_file: .env
+    command:
+      - 0.0.0.0
+      - "5000"
     depends_on:
       - db
     volumes:

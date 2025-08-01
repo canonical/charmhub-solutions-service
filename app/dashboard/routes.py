@@ -4,6 +4,11 @@ from sqlalchemy.orm import joinedload
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
+@dashboard_bp.route("/_status/check")
+def status_check():
+    """Health check endpoint."""
+    return "OK", 200
+
 
 @dashboard_bp.route("/")
 def dashboard():
