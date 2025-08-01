@@ -370,7 +370,7 @@ def seed_database():
                 last_updated=datetime.fromisoformat(
                     data["last_updated"].replace("Z", "+00:00")
                 ),
-                status=SolutionStatus.DRAFT
+                status=SolutionStatus.PENDING_METADATA_SUBMISSION
                 if data["id"] == 3
                 else SolutionStatus.PUBLISHED,
                 platform=PlatformTypes.KUBERNETES,
