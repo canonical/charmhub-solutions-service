@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify,g 
+from flask import Blueprint, request, jsonify, g
 from app.public.logic import (
     get_all_published_solutions,
     get_published_solution_by_name,
@@ -13,7 +13,7 @@ import jwt
 
 public_bp = Blueprint("public", __name__)
 
-JWT_EXPIRATION = 86400 # 24 hours
+JWT_EXPIRATION = 86400  # 24 hours
 SECRET_KEY = os.environ["FLASK_SECRET_KEY"]
 
 
@@ -27,7 +27,6 @@ def login():
     if not all([username, timestamp, signature]):
         return jsonify({"error": "Missing fields"}), 400
 
-
     if not verify_signature(username, timestamp, signature):
         return jsonify({"error": "Invalid or expired signature"}), 403
 
@@ -38,23 +37,22 @@ def login():
         return jsonify({"error": str(e)}), 500
     print(teams)
 
-
     payload = {
         "sub": username,
         "teams": teams,
         "iat": int(time.time()),
-        "exp": int(time.time()) + JWT_EXPIRATION
+        "exp": int(time.time()) + JWT_EXPIRATION,
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
     return jsonify({"token": token})
 
+
 @public_bp.route("/me", methods=["GET"])
 @login_required
 def get_current_user():
-    return jsonify( {
-            "user": g.user
-        }), 200
+    return jsonify({"user": g.user}), 200
+
 
 @public_bp.route("/solutions", methods=["GET"])
 def list_published_solutions():

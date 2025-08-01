@@ -1,5 +1,6 @@
 from app.models import Solution
 
+
 def serialize_solution(solution: Solution) -> dict:
     return {
         "id": solution.id,
@@ -21,7 +22,9 @@ def serialize_solution(solution: Solution) -> dict:
         "use_cases": [uc.to_dict() for uc in solution.use_cases],
         "deployable-on": [
             {
-                "platform": solution.platform.value if solution.platform else None,
+                "platform": (
+                    solution.platform.value if solution.platform else None
+                ),
                 "version": solution.platform_version or [],
                 "prerequisites": solution.platform_prerequisites or [],
             }

@@ -17,9 +17,13 @@ from app.extensions import db
 
 
 class SolutionStatus(enum.Enum):
-    PENDING_NAME_REVIEW = "pending_name_review"  # publisher requests new solution
+    PENDING_NAME_REVIEW = (
+        "pending_name_review"  # publisher requests new solution
+    )
     PENDING_METADATA_SUBMISSION = "pending_metadata_submission"  # empty solution created, metadata not yet submitted
-    PENDING_METADATA_REVIEW = "pending_metadata_review"  # metadata submitted for review
+    PENDING_METADATA_REVIEW = (
+        "pending_metadata_review"  # metadata submitted for review
+    )
     PUBLISHED = "published"  # solution publicly visible
     DRAFT = "draft"  # on publisher edit page, if publisher clicks "save" to preview solution
 
@@ -82,7 +86,9 @@ class Solution(db.Model):
 
     # solution status
     status: Mapped[SolutionStatus] = mapped_column(
-        Enum(SolutionStatus), nullable=False, default=SolutionStatus.PENDING_NAME_REVIEW
+        Enum(SolutionStatus),
+        nullable=False,
+        default=SolutionStatus.PENDING_NAME_REVIEW,
     )
 
     # platform: "kubernetes" or "machine"
