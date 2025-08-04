@@ -12,6 +12,7 @@ from app.models import (
 )
 from datetime import datetime
 from app import create_app
+import uuid
 
 app = create_app()
 
@@ -24,6 +25,7 @@ def seed_database():
         mock_data = [
             {
                 "id": 1,
+                "hash": uuid.uuid4().hex[:16],
                 "name": "canonical-observability-solution",
                 "title": "Canonical Observability Solution",
                 "revision": "1",
@@ -118,6 +120,7 @@ def seed_database():
             },
             {
                 "id": 2,
+                "hash": uuid.uuid4().hex[:16],
                 "name": "canonical-5g-telco-solution",
                 "title": "Canonical 5G Telco Solution",
                 "revision": "1",
@@ -210,6 +213,7 @@ def seed_database():
             },
             {
                 "id": 3,
+                "hash": uuid.uuid4().hex[:16],
                 "name": "canonical-charmed-kubeflow",
                 "title": "Charmed Kubeflow",
                 "revision": "1",
@@ -351,6 +355,7 @@ def seed_database():
                 maintainers.append(maintainer)
 
             solution = Solution(
+                hash=data["hash"],
                 name=data["name"],
                 revision=int(data["revision"]),
                 created_by=publisher.username,
@@ -365,7 +370,7 @@ def seed_database():
                 last_updated=datetime.fromisoformat(
                     data["last_updated"].replace("Z", "+00:00")
                 ),
-                status=SolutionStatus.PENDING_REVIEW
+                status=SolutionStatus.PENDING_METADATA_SUBMISSION
                 if data["id"] == 3
                 else SolutionStatus.PUBLISHED,
                 platform=PlatformTypes.KUBERNETES,
@@ -418,7 +423,7 @@ def seed_database():
 
             db.session.commit()
 
-        # Add a solution with pending status
+        # Add a solution with pending_name_review status
         identity_platform_publisher = Publisher.query.filter_by(username="identity-platform").first()
         if not identity_platform_publisher:
             identity_platform_publisher = Publisher(
@@ -429,16 +434,17 @@ def seed_database():
             db.session.add(identity_platform_publisher)
             db.session.commit()
 
-        pending_solution = Solution(
+        pending_name_review_solution = Solution(
+            hash=uuid.uuid4().hex[:16],
             name="canonical-identity-solution",
             revision=1,
             created_by=identity_platform_publisher.username,
             title="Canonical Identity Solution",
-            status=SolutionStatus.PENDING,
+            status=SolutionStatus.PENDING_NAME_REVIEW,
             publisher_id=identity_platform_publisher.publisher_id,
             platform=PlatformTypes.KUBERNETES,
         )
-        db.session.add(pending_solution)
+        db.session.add(pending_name_review_solution)
         db.session.commit()
 
         print("Database seeded successfully")

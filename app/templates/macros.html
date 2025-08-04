@@ -6,6 +6,7 @@
           <th>Solution name</th>
           <th>Publisher</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
     </thead>
     {% if solutions %}
@@ -15,6 +16,16 @@
             <td><a href="https://charmhub.io/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a></td>
             <td><a href="https://charmhub.io/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
             <td><code>{{ solution.status | upper }}</code></td>
+            <td>
+              {# this needs changed -- temporary localhost until solutions service is deployed #}
+              <a
+                href="http://localhost:8045/solutions/{{ solution.name }}?preview={{ solution.hash }}"
+                target="_blank"
+                class="p-button--base is-dense"
+              >
+                Preview
+              </a>
+            </td>
         </tr>
         {% endfor %}
       </tbody>

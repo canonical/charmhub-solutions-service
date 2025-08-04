@@ -16,7 +16,9 @@ TOKEN_EXPIRATION = 300  # 5 minutes
 def verify_signature(username, timestamp, signature):
     try:
         message = f"{username}|{timestamp}".encode()
-        expected = hmac.new(HMAC_SECRET_KEY.encode(), message, hashlib.blake2b).hexdigest()
+        expected = hmac.new(
+            HMAC_SECRET_KEY.encode(), message, hashlib.blake2b
+        ).hexdigest()
 
         if not hmac.compare_digest(expected, signature):
             return False
@@ -51,9 +53,9 @@ def login_required(f):
 
         g.user = {
             "username": payload["sub"],
-            "teams": payload.get("teams", [])
+            "teams": payload.get("teams", []),
         }
 
         return f(*args, **kwargs)
-    return decorated_function
 
+    return decorated_function

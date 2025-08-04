@@ -41,3 +41,14 @@ def search_published_solutions(query: str):
         .all()
     )
     return [serialize_solution(solution) for solution in results]
+
+
+def get_solution_by_hash(hash: str):
+    solution = (
+        db.session.query(Solution)
+        .filter(
+            Solution.hash == hash,
+        )
+        .first()
+    )
+    return serialize_solution(solution) if solution else None

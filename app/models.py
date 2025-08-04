@@ -17,10 +17,15 @@ from app.extensions import db
 
 
 class SolutionStatus(enum.Enum):
-    PENDING = "pending"  # publisher registers name, reviewer hasn't approved
-    UNPUBLISHED = "unpublished"  # reviewer approved but metadata not submitted
-    PENDING_REVIEW = "pending_review"  # metadata submitted for review
+    PENDING_NAME_REVIEW = (
+        "pending_name_review"  # publisher requests new solution
+    )
+    PENDING_METADATA_SUBMISSION = "pending_metadata_submission"  # empty solution created, metadata not yet submitted
+    PENDING_METADATA_REVIEW = (
+        "pending_metadata_review"  # metadata submitted for review
+    )
     PUBLISHED = "published"  # solution publicly visible
+    DRAFT = "draft"  # on publisher edit page, if publisher clicks "save" to preview solution
 
 
 class PlatformTypes(enum.Enum):
@@ -55,6 +60,7 @@ class Solution(db.Model):
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True
     )  # unique ID because we will publish multiple revisions of the same solution
+    hash: Mapped[str] = mapped_column(String(16), nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String, nullable=False)  # slug
     revision: Mapped[int] = mapped_column(Integer, nullable=False)
     created_by: Mapped[str] = mapped_column(
@@ -80,7 +86,9 @@ class Solution(db.Model):
 
     # solution status
     status: Mapped[SolutionStatus] = mapped_column(
-        Enum(SolutionStatus), nullable=False, default=SolutionStatus.PENDING
+        Enum(SolutionStatus),
+        nullable=False,
+        default=SolutionStatus.PENDING_NAME_REVIEW,
     )
 
     # platform: "kubernetes" or "machine"

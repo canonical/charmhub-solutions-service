@@ -7,7 +7,7 @@ set -e
 flask db upgrade
 
 # Seed the database
-python -m tests.seed
+python -m seed
 
 # Start the application
 flask run --host=$1 --port=$2
