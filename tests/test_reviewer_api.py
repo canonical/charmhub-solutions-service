@@ -25,36 +25,48 @@ def client(app):
 
 
 @patch("app.reviewer.api.approve_solution_name")
-def test_approve_name(mock_approve_solution_name, client):
-    mock_approve_solution_name.return_value = {"name": "solution1"}
+def test_approve_name(mock_logic, client):
+    mock_logic.return_value = {"name": "solution1", "status": "pending_metadata_submission"}
     with patch("app.public.auth.g") as mock_g:
         mock_g.user = {"teams": ["charmhub-solution-reviewers"]}
         response = client.get("/api/reviewer/solution1/approve-name")
     assert response.status_code == 200
-    data = response.get_json()
-    assert data["name"] == "solution1"
-    mock_approve_solution_name.assert_called_once_with("solution1")
+    assert response.get_json()["name"] == "solution1"
+    assert response.get_json()["status"] == "pending_metadata_submission"
+    mock_logic.assert_called_once_with("solution1")
 
 
 @patch("app.reviewer.api.approve_solution_metadata")
-def test_approve_metadata(mock_approve_solution_metadata, client):
-    mock_approve_solution_metadata.return_value = {"name": "solution1"}
+def test_approve_metadata(mock_logic, client):
+    mock_logic.return_value = {"name": "solution1", "status": "published"}
     with patch("app.public.auth.g") as mock_g:
         mock_g.user = {"teams": ["charmhub-solution-reviewers"]}
         response = client.get("/api/reviewer/solution1/approve-metadata")
+
     assert response.status_code == 200
-    data = response.get_json()
-    assert data["name"] == "solution1"
-    mock_approve_solution_metadata.assert_called_once_with("solution1")
+    assert response.get_json()["status"] == "published"
+    mock_logic.assert_called_once_with("solution1")
 
 
 @patch("app.reviewer.api.unpublish_solution")
-def test_unpublish_solution(mock_unpublish_solution, client):
-    mock_unpublish_solution.return_value = {"name": "solution1"}
+def test_unpublish_solution(mock_logic, client):
+    mock_logic.return_value = {"name": "solution1", "status": "unpublished"}
     with patch("app.public.auth.g") as mock_g:
         mock_g.user = {"teams": ["charmhub-solution-reviewers"]}
         response = client.get("/api/reviewer/solution1/unpublish")
+
     assert response.status_code == 200
-    data = response.get_json()
-    assert data["name"] == "solution1"
-    mock_unpublish_solution.assert_called_once_with("solution1")
+    assert response.get_json()["status"] == "unpublished"
+    mock_logic.assert_called_once_with("solution1")
+
+
+@patch("app.reviewer.api.republish_solution")
+def test_republish_solution(mock_logic, client):
+    mock_logic.return_value = {"name": "solution1", "status": "published"}
+    with patch("app.public.auth.g") as mock_g:
+        mock_g.user = {"teams": ["charmhub-solution-reviewers"]}
+        response = client.get("/api/reviewer/solution1/republish")
+
+    assert response.status_code == 200
+    assert response.get_json()["status"] == "published"
+    mock_logic.assert_called_once_with("solution1")
