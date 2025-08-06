@@ -25,6 +25,7 @@ class SolutionStatus(enum.Enum):
         "pending_metadata_review"  # metadata submitted for review
     )
     PUBLISHED = "published"  # solution publicly visible
+    UNPUBLISHED = "unpublished"  # solution unpublished, but still visible to publisher and maintainers
     DRAFT = "draft"  # on publisher edit page, if publisher clicks "save" to preview solution
 
 
@@ -43,6 +44,7 @@ class ReviewerActionType(enum.Enum):
     APPROVE_REGISTRATION = "approve_registration"
     PUBLISH = "publish"
     UNPUBLISH = "unpublish"
+    REPUBLISH = "republish"
 
 
 # Association table for many-to-many between Solution and Maintainer
