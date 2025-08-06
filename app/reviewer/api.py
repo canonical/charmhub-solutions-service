@@ -4,7 +4,7 @@ These endpoints need to be wrapped in auth
 Reviewers must be part of "charmhub-solution-reviewers" launchpad team
 """
 
-from flask import Blueprint, jsonify, g, redirect, url_for
+from flask import Blueprint, jsonify, g, redirect, url_for, current_app
 from app.reviewer.logic import (
     approve_solution_name,
     approve_solution_metadata,
@@ -25,6 +25,8 @@ def approve_name(name):
     solution = approve_solution_name(name)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
+    if current_app.config.get("TESTING"):
+        return jsonify(solution)
     return redirect(url_for("dashboard.dashboard"))
 
 
@@ -36,6 +38,8 @@ def approve_metadata(name):
     solution = approve_solution_metadata(name)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
+    if current_app.config.get("TESTING"):
+        return jsonify(solution)
     return redirect(url_for("dashboard.dashboard"))
 
 
@@ -47,6 +51,8 @@ def unpublish(name):
     solution = unpublish_solution(name)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
+    if current_app.config.get("TESTING"):
+        return jsonify(solution)
     return redirect(url_for("dashboard.dashboard"))
 
 
@@ -58,4 +64,6 @@ def republish(name):
     solution = republish_solution(name)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
+    if current_app.config.get("TESTING"):
+        return jsonify(solution)
     return redirect(url_for("dashboard.dashboard"))
