@@ -25,6 +25,15 @@
               >
                 Preview
               </a>
+              {% if solution.status == 'pending_name_review' %}
+              <a href="{{ url_for('reviewer.approve_name', name=solution.name) }}" class="p-button--base is-dense action-button">Approve Name</a>
+              {% elif solution.status == 'pending_metadata_review' %}
+              <a href="{{ url_for('reviewer.approve_metadata', name=solution.name) }}" class="p-button--base is-dense action-button">Approve & Publish</a>
+              {% elif solution.status == 'published' %}
+              <a href="{{ url_for('reviewer.unpublish', name=solution.name) }}" class="p-button--base is-dense action-button">Unpublish</a>
+              {% elif solution.status == 'unpublished' %}
+              <a href="{{ url_for('reviewer.republish', name=solution.name) }}" class="p-button--base is-dense action-button">Republish</a>
+              {% endif %}
             </td>
         </tr>
         {% endfor %}
@@ -37,7 +46,7 @@
               <img src="https://assets.ubuntu.com/v1/3234f995-Generic_chamhub_NoDocs.svg" alt="empty state" style="height: 50px;">
             </div>
             <div class="u-align--left col-8 col-medium-4 col-small-3">
-              <p class="u-vertical-align--middle">No {{ title }}</p>
+              <p class="u-vertical-align--middle">No {{ title }} solutions</p>
             </div>
           </div>
         </div>

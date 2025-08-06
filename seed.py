@@ -117,6 +117,7 @@ def seed_database():
                     "icon": "https://assets.ubuntu.com/v1/0ed605c0-ubuntu-cof-120.svg",
                     "architecture_diagram": "https://assets.ubuntu.com/v1/58293406-cos.png",
                 },
+                "status": SolutionStatus.PUBLISHED,
             },
             {
                 "id": 2,
@@ -184,10 +185,6 @@ def seed_database():
                 "compatibility": {"juju_versions": [">=3.0.3"]},
                 "maintainers": [
                     {
-                        "display_name": "maintainerA",
-                        "email": "a@canonical.com",
-                    },
-                    {
                         "display_name": "maintainerB",
                         "email": "b@canonical.com",
                     },
@@ -198,10 +195,6 @@ def seed_database():
                         "url": "https://github.com/canonical/telco/",
                     },
                     {
-                        "title": "Report a Bug",
-                        "url": "https://github.com/canonical/telco",
-                    },
-                    {
                         "title": "Community Discussion",
                         "url": "https://discourse.telco.io",
                     },
@@ -210,6 +203,7 @@ def seed_database():
                     "icon": "https://assets.ubuntu.com/v1/0ed605c0-ubuntu-cof-120.svg",
                     "architecture_diagram": "https://assets.ubuntu.com/v1/f7326a20-telco.png",
                 },
+                "status": SolutionStatus.PENDING_METADATA_REVIEW,
             },
             {
                 "id": 3,
@@ -233,10 +227,6 @@ def seed_database():
                         "title": "ML Model Training Pipeline",
                         "description": "ML engineers can use Charmed Kubeflow as a foundation for automating model training workflows, enabling reproducible pipelines, hyperparameter tuning, and tracking of experiments with simplified operations compared to custom solutions.",
                     },
-                    {
-                        "title": "Production Model Deployment",
-                        "description": "Organizations deploying machine learning models into production can use Charmed Kubeflow to enable reliable, scalable model serving with features like A/B testing, canary deployments, and monitoring of model performance.",
-                    },
                 ],
                 "deployable-on": [
                     {
@@ -248,7 +238,6 @@ def seed_database():
                 "created": "2025-03-02T12:00:00Z",
                 "last_updated": "2025-06-24T12:00:00Z",
                 "documentation": {
-                    "main": "https://charmed-kubeflow.io/docs",
                     "source": "https://github.com/canonical/charmed-kubeflow-solutions",
                     "get_started": "https://charmed-kubeflow.io/docs/get-started",
                     "how_to_operate": "https://charmed-kubeflow.io/docs/how-to",
@@ -298,32 +287,21 @@ def seed_database():
                 "compatibility": {"juju_versions": [">=3.1.0"]},
                 "maintainers": [
                     {
-                        "display_name": "maintainerA",
-                        "email": "a@canonical.com",
-                    },
-                    {
-                        "display_name": "maintainerB",
-                        "email": "b@canonical.com",
+                        "display_name": "maintainerC",
+                        "email": "c@canonical.com",
                     },
                 ],
                 "useful_links": [
                     {
-                        "title": "Get started",
-                        "url": "https://charmed-kubeflow.io/docs/get-started",
-                    },
-                    {
                         "title": "Report a Bug",
                         "url": "https://github.com/canonical/charmed-kubeflow-solutions/issues/new?title=docs%3A+TYPE+YOUR+QUESTION+HERE&body=*Please%20describe%20the%20question%20or%20issue%20you%27re%20facing%20with%20Charmed%20Kubeflow.*%0A%0A%0A%0A%0A---%0A*Reported+from%3A+https://charmhub.io*",
-                    },
-                    {
-                        "title": "Community Discussion",
-                        "url": "https://discourse.charmhub.io/tag/kubeflow",
                     },
                 ],
                 "media": {
                     "icon": "https://assets.ubuntu.com/v1/385d2521-kubeflow-logo-1.png",
                     "architecture_diagram": "https://assets.ubuntu.com/v1/40b7f87e-40b7f87eb37f33b4e6cb3453827112fb48808ce3.png",
                 },
+                "status": SolutionStatus.PENDING_METADATA_REVIEW,
             },
         ]
 
@@ -370,26 +348,24 @@ def seed_database():
                 last_updated=datetime.fromisoformat(
                     data["last_updated"].replace("Z", "+00:00")
                 ),
-                status=SolutionStatus.PENDING_METADATA_SUBMISSION
-                if data["id"] == 3
-                else SolutionStatus.PUBLISHED,
+                status=data["status"],
                 platform=PlatformTypes.KUBERNETES,
                 platform_version=data["deployable-on"][0]["version"],
                 platform_prerequisites=data["deployable-on"][0][
                     "prerequisites"
                 ],
-                documentation_main=data["documentation"]["main"],
-                documentation_source=data["documentation"]["source"],
-                get_started_url=data["documentation"]["get_started"],
-                how_to_operate_url=data["documentation"]["how_to_operate"],
+                documentation_main=data.get("documentation", {}).get("main", ""),
+                documentation_source=data.get("documentation", {}).get("source", ""),
+                get_started_url=data.get("documentation", {}).get("get_started", ""),
+                how_to_operate_url=data.get("documentation", {}).get("how_to_operate", ""),
                 architecture_diagram_url=data["media"]["architecture_diagram"],
-                architecture_explanation=data["documentation"][
-                    "architecture_explanation"
-                ],
-                submit_bug_url=data["documentation"]["submit_a_bug"],
-                community_discussion_url=data["documentation"][
-                    "community_discussion"
-                ],
+                architecture_explanation=data.get("documentation", {}).get(
+                    "architecture_explanation", ""
+                ),
+                submit_bug_url=data.get("documentation", {}).get("submit_a_bug", ""),
+                community_discussion_url=data.get("documentation", {}).get(
+                    "community_discussion", ""
+                ),
                 juju_versions=data["compatibility"]["juju_versions"],
                 publisher_id=publisher.publisher_id,
                 maintainers=maintainers,
@@ -445,6 +421,19 @@ def seed_database():
             platform=PlatformTypes.KUBERNETES,
         )
         db.session.add(pending_name_review_solution)
+        db.session.commit()
+
+        unpublished_solution = Solution(
+            hash=uuid.uuid4().hex[:16],
+            name="canonical-unpublished-solution",
+            revision=1,
+            created_by=identity_platform_publisher.username,
+            title="Canonical Unpublished Solution",
+            status=SolutionStatus.UNPUBLISHED,
+            publisher_id=identity_platform_publisher.publisher_id,
+            platform=PlatformTypes.KUBERNETES,
+        )
+        db.session.add(unpublished_solution)
         db.session.commit()
 
         print("Database seeded successfully")
