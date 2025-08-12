@@ -470,7 +470,6 @@ def seed_database():
             hash=uuid.uuid4().hex[:16],
             name="canonical-pending-metadata-review-solution",
             revision=1,
-            created_by=identity_platform_publisher.username,
             title="Canonical Pending Metadata Review Solution",
             status=SolutionStatus.PENDING_METADATA_REVIEW,
             publisher_id=identity_platform_publisher.publisher_id,
