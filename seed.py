@@ -423,17 +423,17 @@ def seed_database():
         db.session.add(pending_name_review_solution)
         db.session.commit()
 
-        unpublished_solution = Solution(
+        pending_metadata_review_solution = Solution(
             hash=uuid.uuid4().hex[:16],
-            name="canonical-unpublished-solution",
+            name="canonical-pending-metadata-review-solution",
             revision=1,
             created_by=identity_platform_publisher.username,
-            title="Canonical Unpublished Solution",
-            status=SolutionStatus.UNPUBLISHED,
+            title="Canonical Pending Metadata Review Solution",
+            status=SolutionStatus.PENDING_METADATA_REVIEW,
             publisher_id=identity_platform_publisher.publisher_id,
             platform=PlatformTypes.KUBERNETES,
         )
-        db.session.add(unpublished_solution)
+        db.session.add(pending_metadata_review_solution)
         db.session.commit()
 
         print("Database seeded successfully")

@@ -17,16 +17,17 @@ from app.extensions import db
 
 
 class SolutionStatus(enum.Enum):
-    PENDING_NAME_REVIEW = (
-        "pending_name_review"  # publisher requests new solution
-    )
-    PENDING_METADATA_SUBMISSION = "pending_metadata_submission"  # empty solution created, metadata not yet submitted
-    PENDING_METADATA_REVIEW = (
-        "pending_metadata_review"  # metadata submitted for review
-    )
-    PUBLISHED = "published"  # solution publicly visible
-    UNPUBLISHED = "unpublished"  # solution unpublished, but still visible to publisher and maintainers
-    DRAFT = "draft"  # on publisher edit page, if publisher clicks "save" to preview solution
+    # publisher requests new solution
+    PENDING_NAME_REVIEW = "pending_name_review"
+    # awaiting metadata submission - or status while publisher is editing
+    DRAFT = "draft"
+    # metadata submitted for review
+    PENDING_METADATA_REVIEW = "pending_metadata_review"
+    # solution publicly visible
+    PUBLISHED = "published"
+    # solution is not publicly visible, but still exists in the database
+    # used for previous revisions
+    UNPUBLISHED = "unpublished"
 
 
 class PlatformTypes(enum.Enum):
@@ -43,8 +44,6 @@ class Visibility(enum.Enum):
 class ReviewerActionType(enum.Enum):
     APPROVE_REGISTRATION = "approve_registration"
     PUBLISH = "publish"
-    UNPUBLISH = "unpublish"
-    REPUBLISH = "republish"
 
 
 # Association table for many-to-many between Solution and Maintainer
