@@ -6,7 +6,7 @@ from app.utils import serialize_solution
 def approve_solution_name(name: str):
     solution = db.session.query(Solution).filter(Solution.name == name).first()
     if solution and solution.status == SolutionStatus.PENDING_NAME_REVIEW:
-        solution.status = SolutionStatus.PENDING_METADATA_SUBMISSION
+        solution.status = SolutionStatus.DRAFT
         db.session.commit()
         return serialize_solution(solution)
     return None
@@ -15,7 +15,7 @@ def approve_solution_name(name: str):
 def approve_solution_metadata(name: str):
     solution = db.session.query(Solution).filter(Solution.name == name).first()
     if solution and solution.status == SolutionStatus.PENDING_METADATA_REVIEW:
-        # Unpublish previous revisions
+        # Unpublish previous revision
         (
             db.session.query(Solution)
             .filter(
@@ -24,24 +24,6 @@ def approve_solution_metadata(name: str):
             )
             .update({"status": SolutionStatus.UNPUBLISHED})
         )
-        solution.status = SolutionStatus.PUBLISHED
-        db.session.commit()
-        return serialize_solution(solution)
-    return None
-
-
-def unpublish_solution(name: str):
-    solution = db.session.query(Solution).filter(Solution.name == name).first()
-    if solution and solution.status == SolutionStatus.PUBLISHED:
-        solution.status = SolutionStatus.UNPUBLISHED
-        db.session.commit()
-        return serialize_solution(solution)
-    return None
-
-
-def republish_solution(name: str):
-    solution = db.session.query(Solution).filter(Solution.name == name).first()
-    if solution and solution.status == SolutionStatus.UNPUBLISHED:
         solution.status = SolutionStatus.PUBLISHED
         db.session.commit()
         return serialize_solution(solution)

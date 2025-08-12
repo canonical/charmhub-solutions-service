@@ -2,7 +2,6 @@ from flask import Flask
 from config import Config
 from app.extensions import db, migrate
 from app.public.api import public_bp
-from app.reviewer.api import reviewer_bp
 from app.dashboard.routes import dashboard_bp
 
 
@@ -15,7 +14,6 @@ def create_app():
 
     with app.app_context():
         app.register_blueprint(public_bp, url_prefix="/api")
-        app.register_blueprint(reviewer_bp, url_prefix="/api/reviewer")
         app.register_blueprint(dashboard_bp, url_prefix="/")
 
     return app
