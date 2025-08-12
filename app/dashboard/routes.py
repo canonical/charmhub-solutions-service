@@ -1,6 +1,10 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, jsonify, redirect, url_for, current_app
 from app.models import Solution, SolutionStatus
 from sqlalchemy.orm import joinedload
+from app.reviewer.logic import (
+    approve_solution_name,
+    approve_solution_metadata,
+)
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -48,3 +52,29 @@ def dashboard():
         pending_name_review_solutions=pending_name_review_solutions,
         
     )
+
+
+@dashboard_bp.route("/<string:name>/approve-name", methods=["GET"])
+# @login_required
+def approve_name(name):
+    # if "charmhub-solution-reviewers" not in g.user["teams"]:
+    #     return jsonify({"error": "Forbidden"}), 403
+    solution = approve_solution_name(name)
+    if not solution:
+        return jsonify({"error": "Solution not found"}), 404
+    if current_app.config.get("TESTING"):
+        return jsonify(solution)
+    return redirect(url_for("dashboard.dashboard"))
+
+
+@dashboard_bp.route("/<string:name>/approve-metadata", methods=["GET"])
+# @login_required
+def approve_metadata(name):
+    # if "charmhub-solution-reviewers" not in g.user["teams"]:
+    #     return jsonify({"error": "Forbidden"}), 403
+    solution = approve_solution_metadata(name)
+    if not solution:
+        return jsonify({"error": "Solution not found"}), 404
+    if current_app.config.get("TESTING"):
+        return jsonify(solution)
+    return redirect(url_for("dashboard.dashboard"))

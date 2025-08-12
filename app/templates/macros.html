@@ -24,9 +24,9 @@
                 Preview
               </a>
               {% if solution.status == 'pending_name_review' %}
-              <a href="{{ url_for('reviewer.approve_name', name=solution.name) }}" class="p-button--base is-dense action-button">Approve Name</a>
+              <a href="{{ url_for('dashboard.approve_name', name=solution.name) }}" class="p-button--base is-dense action-button">Approve Name</a>
               {% elif solution.status == 'pending_metadata_review' %}
-              <a href="{{ url_for('reviewer.approve_metadata', name=solution.name) }}" class="p-button--base is-dense action-button">Approve & Publish</a>
+              <a href="{{ url_for('dashboard.approve_metadata', name=solution.name) }}" class="p-button--base is-dense action-button">Approve & Publish</a>
               {% endif %}
             </td>
         </tr>
