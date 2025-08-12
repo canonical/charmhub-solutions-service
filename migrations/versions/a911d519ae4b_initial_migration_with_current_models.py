@@ -1,8 +1,8 @@
-"""initial migration
+"""initial migration with current models
 
-Revision ID: 79b5d402cbe4
+Revision ID: a911d519ae4b
 Revises: 
-Create Date: 2025-07-18 07:36:47.257188
+Create Date: 2025-08-12 05:38:51.355734
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '79b5d402cbe4'
+revision = 'a911d519ae4b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,6 +33,7 @@ def upgrade():
     )
     op.create_table('solution',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('hash', sa.String(length=16), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('revision', sa.Integer(), nullable=False),
     sa.Column('created_by', sa.String(), nullable=False),
@@ -43,7 +44,7 @@ def upgrade():
     sa.Column('icon', sa.String(), nullable=True),
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('last_updated', sa.DateTime(), nullable=False),
-    sa.Column('status', sa.Enum('PENDING', 'UNPUBLISHED', 'PENDING_REVIEW', 'PUBLISHED', name='solutionstatus'), nullable=False),
+    sa.Column('status', sa.Enum('PENDING_NAME_REVIEW', 'DRAFT', 'PENDING_METADATA_REVIEW', 'PUBLISHED', 'UNPUBLISHED', name='solutionstatus'), nullable=False),
     sa.Column('platform', sa.Enum('KUBERNETES', 'MACHINE', name='platformtypes'), nullable=False),
     sa.Column('platform_version', sa.JSON(), nullable=True),
     sa.Column('platform_prerequisites', sa.JSON(), nullable=True),
@@ -60,6 +61,7 @@ def upgrade():
     sa.Column('visibility', sa.Enum('PUBLIC', 'PRIVATE', name='visibility'), nullable=False),
     sa.ForeignKeyConstraint(['publisher_id'], ['publisher.publisher_id'], ),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('hash'),
     sa.UniqueConstraint('name', 'revision', name='_solution_revision_uc')
     )
     op.create_table('charm',
@@ -74,7 +76,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('solution_id', sa.Integer(), nullable=False),
     sa.Column('reviewer_id', sa.String(), nullable=False),
-    sa.Column('action', sa.Enum('APPROVE_REGISTRATION', 'PUBLISH', 'UNPUBLISH', name='revieweractiontype'), nullable=False),
+    sa.Column('action', sa.Enum('APPROVE_REGISTRATION', 'PUBLISH', name='revieweractiontype'), nullable=False),
     sa.Column('comment', sa.Text(), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['solution_id'], ['solution.id'], ),
