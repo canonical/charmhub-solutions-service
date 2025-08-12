@@ -13,14 +13,23 @@ from app.models import (
 from datetime import datetime
 from app import create_app
 import uuid
+import os
 
 app = create_app()
 
 
 def seed_database():
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
+    with app.app_context():        
+        # Check if seeding should run
+        skip_seed = os.getenv('SKIP_SEED', 'false').lower() == 'true'
+        if skip_seed:
+            print("SKIP_SEED=true, skipping database seeding...")
+            return
+            
+        # Check if database already has data
+        if Solution.query.first() is not None:
+            print("Database already seeded, skipping...")
+            return
 
         mock_data = [
             {
