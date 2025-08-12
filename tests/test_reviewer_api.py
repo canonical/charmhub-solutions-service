@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch
 from flask import Flask
-from app.reviewer.api import reviewer_bp
+from app.dashboard.routes import dashboard_bp
 
 
 @pytest.fixture
@@ -11,7 +11,7 @@ def app():
     """
     app = Flask(__name__)
     app.config["TESTING"] = True
-    app.register_blueprint(reviewer_bp, url_prefix="/api/reviewer")
+    app.register_blueprint(dashboard_bp, url_prefix="/")
     app.app_context().push()
     return app
 
@@ -24,24 +24,24 @@ def client(app):
     return app.test_client()
 
 
-@patch("app.reviewer.api.approve_solution_name")
+@patch("app.dashboard.routes.approve_solution_name")
 def test_approve_name(mock_logic, client):
     mock_logic.return_value = {"name": "solution1", "status": "draft"}
     with patch("app.public.auth.g") as mock_g:
         mock_g.user = {"teams": ["charmhub-solution-reviewers"]}
-        response = client.get("/api/reviewer/solution1/approve-name")
+        response = client.get("/solution1/approve-name")
     assert response.status_code == 200
     assert response.get_json()["name"] == "solution1"
     assert response.get_json()["status"] == "draft"
     mock_logic.assert_called_once_with("solution1")
 
 
-@patch("app.reviewer.api.approve_solution_metadata")
+@patch("app.dashboard.routes.approve_solution_metadata")
 def test_approve_metadata(mock_logic, client):
     mock_logic.return_value = {"name": "solution1", "status": "published"}
     with patch("app.public.auth.g") as mock_g:
         mock_g.user = {"teams": ["charmhub-solution-reviewers"]}
-        response = client.get("/api/reviewer/solution1/approve-metadata")
+        response = client.get("/solution1/approve-metadata")
 
     assert response.status_code == 200
     assert response.get_json()["status"] == "published"

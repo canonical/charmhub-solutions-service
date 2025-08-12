@@ -28,5 +28,3 @@ def approve_solution_metadata(name: str):
         db.session.commit()
         return serialize_solution(solution)
     return None
-
-

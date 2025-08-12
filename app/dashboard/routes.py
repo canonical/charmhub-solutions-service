@@ -1,4 +1,11 @@
-from flask import Blueprint, render_template, jsonify, redirect, url_for, current_app
+from flask import (
+    Blueprint,
+    render_template,
+    jsonify,
+    redirect,
+    url_for,
+    current_app,
+)
 from app.models import Solution, SolutionStatus
 from sqlalchemy.orm import joinedload
 from app.reviewer.logic import (
@@ -7,6 +14,7 @@ from app.reviewer.logic import (
 )
 
 dashboard_bp = Blueprint("dashboard", __name__)
+
 
 @dashboard_bp.route("/_status/check")
 def status_check():
@@ -22,9 +30,7 @@ def dashboard():
 
     published_solutions = []
     pending_metadata_review_solutions = []
-    
     pending_name_review_solutions = []
-    
 
     for solution in solutions_query:
         solution_data = {
@@ -39,18 +45,14 @@ def dashboard():
             published_solutions.append(solution_data)
         elif solution.status == SolutionStatus.PENDING_METADATA_REVIEW:
             pending_metadata_review_solutions.append(solution_data)
-        
         elif solution.status == SolutionStatus.PENDING_NAME_REVIEW:
             pending_name_review_solutions.append(solution_data)
-        
 
     return render_template(
         "dashboard.html",
         published_solutions=published_solutions,
         pending_metadata_review_solutions=pending_metadata_review_solutions,
-        
         pending_name_review_solutions=pending_name_review_solutions,
-        
     )
 
 
