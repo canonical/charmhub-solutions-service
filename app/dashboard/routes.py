@@ -25,7 +25,7 @@ def status_check():
 @dashboard_bp.route("/")
 def dashboard():
     solutions_query = Solution.query.options(
-        joinedload(Solution.publisher)
+        joinedload(Solution.publisher), joinedload(Solution.creator)
     ).all()
 
     published_solutions = []
@@ -39,6 +39,8 @@ def dashboard():
             "status": solution.status.value,
             "publisher_username": solution.publisher.username,
             "publisher_display_name": solution.publisher.display_name,
+            "creator_mattermost": solution.creator.mattermost_handle,
+            "creator_matrix": solution.creator.matrix_handle,
             "hash": solution.hash,
         }
         if solution.status == SolutionStatus.PUBLISHED:

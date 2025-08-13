@@ -11,6 +11,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Enum,
     Table,
+    CheckConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import db
@@ -58,28 +59,22 @@ solution_maintainer = Table(
 class Solution(db.Model):
     __tablename__ = "solution"
 
-    id: Mapped[int] = mapped_column(
-        Integer, primary_key=True
-    )  # unique ID because we will publish multiple revisions of the same solution
+    # unique ID because we will publish multiple revisions of the same solution
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     hash: Mapped[str] = mapped_column(String(16), nullable=False, unique=True)
-    name: Mapped[str] = mapped_column(String, nullable=False)  # slug
+    # slug
+    name: Mapped[str] = mapped_column(String, nullable=False)
     revision: Mapped[int] = mapped_column(Integer, nullable=False)
-    created_by: Mapped[str] = mapped_column(
-        String, nullable=False
-    )  # Launchpad username
-    title: Mapped[str] = mapped_column(
-        String, nullable=False
-    )  # title case name of soltuion
-    summary: Mapped[Optional[str]] = mapped_column(
-        String
-    )  # no markdown allowed
-    description: Mapped[Optional[str]] = mapped_column(
-        Text
-    )  # markdown allowed
-    terraform_modules: Mapped[Optional[str]] = mapped_column(
-        String
-    )  # URL to terraform modules
-    icon: Mapped[Optional[str]] = mapped_column(String)  # URL to icon
+    # title case name of solution
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    # no markdown allowed in summary
+    summary: Mapped[Optional[str]] = mapped_column(String)
+    # markdown allowed in description
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    # URL to terraform modules
+    terraform_modules: Mapped[Optional[str]] = mapped_column(String)
+    # URL to icon
+    icon: Mapped[Optional[str]] = mapped_column(String)
     created: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     last_updated: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now, onupdate=datetime.now
@@ -96,18 +91,15 @@ class Solution(db.Model):
     platform: Mapped[PlatformTypes] = mapped_column(
         Enum(PlatformTypes), nullable=False
     )
-    platform_version: Mapped[Optional[List[str]]] = mapped_column(
-        JSON
-    )  # list of platform version constraints
-    platform_prerequisites: Mapped[Optional[List[str]]] = mapped_column(
-        JSON
-    )  # list of platform prerequisites
+    # list of platform version constraints
+    platform_version: Mapped[Optional[List[str]]] = mapped_column(JSON)
+    # list of platform prerequisites
+    platform_prerequisites: Mapped[Optional[List[str]]] = mapped_column(JSON)
 
     # documentation links
     documentation_main: Mapped[Optional[str]] = mapped_column(String)
-    documentation_source: Mapped[Optional[str]] = mapped_column(
-        String
-    )  # github source repo
+    # github source repo
+    documentation_source: Mapped[Optional[str]] = mapped_column(String)
     get_started_url: Mapped[Optional[str]] = mapped_column(String)
     how_to_operate_url: Mapped[Optional[str]] = mapped_column(String)
     architecture_diagram_url: Mapped[Optional[str]] = mapped_column(String)
@@ -122,6 +114,17 @@ class Solution(db.Model):
         ForeignKey("publisher.publisher_id"), nullable=False
     )
     publisher: Mapped["Publisher"] = relationship(backref="solutions")
+
+    """
+    The specific creator of the solution revision.
+    Used for communication purposes during the review process.
+    This will not be shown publicly,
+    but we will show the MM / Matrix handle on the reviewer dashboard.
+    """
+    creator_id: Mapped[int] = mapped_column(
+        ForeignKey("creator.id"), nullable=False
+    )
+    creator: Mapped["Creator"] = relationship(back_populates="solutions")
 
     use_cases: Mapped[Optional[List["UseCase"]]] = relationship(
         back_populates="solution", cascade="all, delete-orphan"
@@ -144,12 +147,26 @@ class Solution(db.Model):
     )
 
 
+class Creator(db.Model):
+    __tablename__ = "creator"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    mattermost_handle: Mapped[Optional[str]] = mapped_column(
+        String, nullable=True
+    )
+    matrix_handle: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    solutions: Mapped[List["Solution"]] = relationship(
+        back_populates="creator"
+    )
+
+
 class Publisher(db.Model):
     __tablename__ = "publisher"
 
-    publisher_id: Mapped[str] = mapped_column(
-        String, primary_key=True
-    )  # publisher_id we get from the storeAPI (Launchpad group)
+    # publisher_id we get from the storeAPI (Launchpad group)
+    publisher_id: Mapped[str] = mapped_column(String, primary_key=True)
     display_name: Mapped[str] = mapped_column(String, nullable=False)
     username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
@@ -178,9 +195,8 @@ class Charm(db.Model):
     __tablename__ = "charm"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    charm_name: Mapped[str] = mapped_column(
-        String, nullable=False
-    )  # charm slug
+    # charm slug
+    charm_name: Mapped[str] = mapped_column(String, nullable=False)
     solution_id: Mapped[int] = mapped_column(
         ForeignKey("solution.id"), nullable=False
     )
@@ -254,9 +270,8 @@ class ReviewAction(db.Model):
     solution_id: Mapped[int] = mapped_column(
         ForeignKey("solution.id"), nullable=False
     )
-    reviewer_id: Mapped[str] = mapped_column(
-        String, nullable=False
-    )  # Launchpad username
+    # Launchpad username
+    reviewer_id: Mapped[str] = mapped_column(String, nullable=False)
     action: Mapped[ReviewerActionType] = mapped_column(
         Enum(ReviewerActionType), nullable=False
     )

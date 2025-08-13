@@ -5,6 +5,7 @@
         <tr>
           <th>Solution name</th>
           <th>Publisher</th>
+          <th>Creator</th>
           <th>Actions</th>
         </tr>
     </thead>
@@ -14,6 +15,14 @@
         <tr>
             <td><a href="https://charmhub.io/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a></td>
             <td><a href="https://charmhub.io/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
+            <td>
+              {% if solution.creator_mattermost %}
+              <p>Mattermost: <code>{{ solution.creator_mattermost }}</code></p>
+              {% endif %}
+              {% if solution.creator_matrix %}
+              <p>Matrix: <code>{{ solution.creator_matrix }}</code></p>
+              {% endif %}
+            </td>
             <td>
               {# this needs changed -- temporary localhost until solutions service is deployed #}
               <a
