@@ -12,8 +12,6 @@ def get_all_published_solutions():
     return [serialize_solution(solution) for solution in solutions]
 
 
-
-
 def get_published_solution_by_name(name: str):
     solution = (
         db.session.query(Solution)
@@ -54,5 +52,3 @@ def get_solution_by_hash(hash: str):
         .first()
     )
     return serialize_solution(solution) if solution else None
-
-

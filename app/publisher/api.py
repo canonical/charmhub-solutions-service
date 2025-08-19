@@ -6,13 +6,14 @@ from app.publisher.logic import (
     create_new_solution_revision,
     get_draft_solution_by_name,
     get_solution_by_name_and_rev,
-    update_solution_metadata
+    update_solution_metadata,
 )
 from app.public.logic import get_published_solution_by_name
 from app.public.auth import login_required
 from app.public.launchpad import get_user_teams
 
 publisher_bp = Blueprint("publisher", __name__)
+
 
 @publisher_bp.route("/solutions", methods=["GET"])
 @login_required
@@ -27,6 +28,7 @@ def get_publisher_solutions():
     solutions = get_solutions_by_lp_teams(teams)
     return jsonify(solutions), 200
 
+
 @publisher_bp.route("/solutions", methods=["POST"])
 @login_required
 def register_solution():
@@ -34,30 +36,46 @@ def register_solution():
     if not user:
         return jsonify({"error": "Unauthorized"}), 401
     data = request.get_json()
-    if not data or not all(key in data for key in ["name", "publisher", "description"]):
-        return jsonify({"error": f"Invalid request data, expected 'name', 'publisher', and 'description'"}), 400
+    if not data or not all(
+        key in data for key in ["name", "publisher", "description"]
+    ):
+        return (
+            jsonify(
+                {
+                    "error": f"Invalid request data, expected 'name', 'publisher', and 'description'"
+                }
+            ),
+            400,
+        )
 
     teams = g.user["teams"]
     if not teams:
         teams = get_user_teams(user["username"])
 
     if data["publisher"] not in teams:
-        return jsonify({"error": "User must be a member of publishing group"}), 404
+        return (
+            jsonify({"error": "User must be a member of publishing group"}),
+            404,
+        )
 
     existing_solution = get_solution_by_name(data["name"])
     if existing_solution:
-        return jsonify({"error": "Solution with this name already exists"}), 400
+        return (
+            jsonify({"error": "Solution with this name already exists"}),
+            400,
+        )
 
     res = create_empty_solution(
         name=data["name"],
         publisher=data["publisher"],
         description=data["description"],
-        created_by=user["username"]
+        created_by=user["username"],
     )
 
     if not res:
         return jsonify({"error": "Failed to create solution"}), 500
     return jsonify(res), 201
+
 
 @publisher_bp.route("/solutions/<string:name>/<int:rev>", methods=["GET"])
 @login_required
@@ -74,6 +92,7 @@ def get_solution_revision(name, rev):
 
     return jsonify(solution), 200
 
+
 @publisher_bp.route("/solutions/<string:name>/", methods=["POST"])
 @login_required
 def create_solution_revision(name):
@@ -83,7 +102,7 @@ def create_solution_revision(name):
         return jsonify({"error": "Solution not found"}), 404
 
     teams = g.user["teams"]
-    if current_solution["publisher"]['username'] not in teams:
+    if current_solution["publisher"]["username"] not in teams:
         return jsonify({"error": "Solution not found"}), 404
 
     draft_solution = get_draft_solution_by_name(name)
@@ -94,6 +113,7 @@ def create_solution_revision(name):
     solution = create_new_solution_revision(name)
 
     return jsonify(solution), 200
+
 
 @publisher_bp.route("/solutions/<string:name>/<int:rev>", methods=["PATCH"])
 @login_required
@@ -118,7 +138,7 @@ def update_solution_revision(name, rev):
         return jsonify({"error": "No data provided"}), 400
 
     updated_solution = update_solution_metadata(name, rev, data)
-    
+
     if not updated_solution:
         return jsonify({"error": "Failed to update solution"}), 500
 

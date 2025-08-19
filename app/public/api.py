@@ -81,5 +81,3 @@ def get_solution_preview(uuid):
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
     return jsonify(solution), 200
-
-

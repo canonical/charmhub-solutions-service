@@ -117,20 +117,29 @@ def update_solution_metadata(name: str, rev: int, metadata: dict):
         )
         .first()
     )
-    
+
     if not solution:
         return None
-    
+
     for field, value in metadata.items():
-        if hasattr(solution, field) and field not in ['id', 'hash', 'name', 'revision', 'title', 'created', 'last_updated', 'status']:
+        if hasattr(solution, field) and field not in [
+            "id",
+            "hash",
+            "name",
+            "revision",
+            "title",
+            "created",
+            "last_updated",
+            "status",
+        ]:
             setattr(solution, field, value)
-    
+
     if rev == 1:
         solution.status = SolutionStatus.PENDING_METADATA_REVIEW
     else:
         solution.status = SolutionStatus.PUBLISHED
-    
+
     solution.last_updated = datetime.now(timezone.utc)
-    
+
     db.session.commit()
     return serialize_solution(solution)
