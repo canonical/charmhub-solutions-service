@@ -87,7 +87,7 @@ def get_solution_revision(name, rev):
 
     teams = g.user["teams"]
 
-    if solution["publisher"] not in teams:
+    if solution["publisher"]["username"] not in teams:
         return jsonify({"error": "Solution revision not found"}), 404
 
     return jsonify(solution), 200
