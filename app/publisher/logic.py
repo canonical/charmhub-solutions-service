@@ -3,6 +3,7 @@ from app.models import PlatformTypes, Publisher, Solution, SolutionStatus
 from app.utils import serialize_solution
 import uuid
 from sqlalchemy import inspect
+from datetime import datetime, timezone
 
 
 def get_solution_by_name(name: str):
@@ -100,3 +101,36 @@ def get_solution_by_name_and_rev(name: str, rev: int):
         .first()
     )
     return serialize_solution(solution) if solution else None
+
+
+def update_solution_metadata(name: str, rev: int, metadata: dict):
+    """
+    Update solution metadata for a specific revision.
+    For revision 1: sets status to PENDING_METADATA_REVIEW
+    For revision >1: sets status to PUBLISHED (update without review)
+    """
+    solution = (
+        db.session.query(Solution)
+        .filter(
+            Solution.name == name,
+            Solution.revision == rev,
+        )
+        .first()
+    )
+    
+    if not solution:
+        return None
+    
+    for field, value in metadata.items():
+        if hasattr(solution, field) and field not in ['id', 'hash', 'name', 'revision', 'title', 'created', 'last_updated', 'status']:
+            setattr(solution, field, value)
+    
+    if rev == 1:
+        solution.status = SolutionStatus.PENDING_METADATA_REVIEW
+    else:
+        solution.status = SolutionStatus.PUBLISHED
+    
+    solution.last_updated = datetime.now(timezone.utc)
+    
+    db.session.commit()
+    return serialize_solution(solution)

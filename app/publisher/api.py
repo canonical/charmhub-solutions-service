@@ -5,7 +5,8 @@ from app.publisher.logic import (
     get_solution_by_name,
     create_new_solution_revision,
     get_draft_solution_by_name,
-    get_solution_by_name_and_rev
+    get_solution_by_name_and_rev,
+    update_solution_metadata
 )
 from app.public.logic import get_published_solution_by_name
 from app.public.auth import login_required
@@ -93,3 +94,32 @@ def create_solution_revision(name):
     solution = create_new_solution_revision(name)
 
     return jsonify(solution), 200
+
+@publisher_bp.route("/solutions/<string:name>/<int:rev>", methods=["PATCH"])
+@login_required
+def update_solution_revision(name, rev):
+    user = g.user
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    solution = get_solution_by_name_and_rev(name, rev)
+    if not solution:
+        return jsonify({"error": "Solution not found"}), 404
+
+    teams = g.user["teams"]
+    if not teams:
+        teams = get_user_teams(user["username"])
+
+    if solution["publisher"]["username"] not in teams:
+        return jsonify({"error": "Solution not found"}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    updated_solution = update_solution_metadata(name, rev, data)
+    
+    if not updated_solution:
+        return jsonify({"error": "Failed to update solution"}), 500
+
+    return jsonify(updated_solution), 200
