@@ -1,12 +1,16 @@
-
 from flask import Blueprint, jsonify, g, request
-from app.public.logic import (
+from app.publisher.logic import (
     get_solutions_by_lp_teams,
     create_empty_solution,
-    get_solution_by_name
+    get_solution_by_name,
+    create_new_solution_revision,
+    get_draft_solution_by_name,
+    get_solution_by_name_and_rev
 )
+from app.public.logic import get_published_solution_by_name
 from app.public.auth import login_required
 from app.public.launchpad import get_user_teams
+
 publisher_bp = Blueprint("publisher", __name__)
 
 @publisher_bp.route("/solutions", methods=["GET"])
@@ -53,3 +57,39 @@ def register_solution():
     if not res:
         return jsonify({"error": "Failed to create solution"}), 500
     return jsonify(res), 201
+
+@publisher_bp.route("/solutions/<string:name>/<int:rev>", methods=["GET"])
+@login_required
+def get_solution_revision(name, rev):
+    solution = get_solution_by_name_and_rev(name, rev)
+
+    if not solution:
+        return jsonify({"error": "Solution revision not found"}), 404
+
+    teams = g.user["teams"]
+
+    if solution["publisher"] not in teams:
+        return jsonify({"error": "Solution revision not found"}), 404
+
+    return jsonify(solution), 200
+
+@publisher_bp.route("/solutions/<string:name>/", methods=["POST"])
+@login_required
+def create_solution_revision(name):
+    current_solution = get_published_solution_by_name(name)
+
+    if not current_solution:
+        return jsonify({"error": "Solution not found"}), 404
+
+    teams = g.user["teams"]
+    if current_solution["publisher"]['username'] not in teams:
+        return jsonify({"error": "Solution not found"}), 404
+
+    draft_solution = get_draft_solution_by_name(name)
+
+    if draft_solution:
+        return jsonify({"error": "Draft already exists"}), 400
+
+    solution = create_new_solution_revision(name)
+
+    return jsonify(solution), 200
