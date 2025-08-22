@@ -1,12 +1,19 @@
 from app.extensions import db
-from app.models import Solution, SolutionStatus
+from app.models import Solution, SolutionStatus, Visibility
 from app.utils import serialize_solution
+
+
+def _published_public_filter():
+    return (
+        Solution.status == SolutionStatus.PUBLISHED,
+        Solution.visibility == Visibility.PUBLIC,
+    )
 
 
 def get_all_published_solutions():
     solutions = (
         db.session.query(Solution)
-        .filter(Solution.status == SolutionStatus.PUBLISHED)
+        .filter(*_published_public_filter())
         .all()
     )
     return [serialize_solution(solution) for solution in solutions]
@@ -17,7 +24,7 @@ def get_published_solution_by_name(name: str):
         db.session.query(Solution)
         .filter(
             Solution.name == name,
-            Solution.status == SolutionStatus.PUBLISHED,
+            *_published_public_filter(),
         )
         .first()
     )
@@ -31,7 +38,7 @@ def search_published_solutions(query: str):
     results = (
         db.session.query(Solution)
         .filter(
-            Solution.status == SolutionStatus.PUBLISHED,
+            *_published_public_filter(),
             (
                 Solution.title.ilike(f"%{query}%")
                 | Solution.summary.ilike(f"%{query}%")
