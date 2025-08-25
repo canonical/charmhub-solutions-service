@@ -48,4 +48,13 @@ def serialize_solution(solution: Solution) -> dict:
         "charms": [c.to_dict() for c in solution.charms],
         "maintainers": [m.to_dict() for m in solution.maintainers],
         "useful_links": [ul.to_dict() for ul in solution.useful_links],
+        "creator": (
+            {
+                "email": solution.creator.email,
+                "mattermost_handle": solution.creator.mattermost_handle,
+                "matrix_handle": solution.creator.matrix_handle,
+            }
+            if solution.creator
+            else None
+        ),
     }

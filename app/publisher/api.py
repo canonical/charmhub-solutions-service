@@ -36,13 +36,17 @@ def register_solution():
     if not user:
         return jsonify({"error": "Unauthorized"}), 401
     data = request.get_json()
-    if not data or not all(
-        key in data for key in ["name", "publisher", "description"]
-    ):
+    required_keys = ["name", "publisher", "description", "creator_email"]
+
+    if not data or not all(key in data for key in required_keys):
         return (
             jsonify(
                 {
-                    "error": f"Invalid request data, expected 'name', 'publisher', and 'description'"
+                    "error": (
+                        "Invalid request data, expected 'name', "
+                        "'publisher', 'description', and "
+                        "'creator_email'"
+                    )
                 }
             ),
             400,
@@ -69,7 +73,9 @@ def register_solution():
         name=data["name"],
         publisher=data["publisher"],
         description=data["description"],
-        created_by=user["username"],
+        creator_email=data["creator_email"],
+        mattermost_handle=data.get("mattermost_handle"),
+        matrix_handle=data.get("matrix_handle"),
     )
 
     if not res:

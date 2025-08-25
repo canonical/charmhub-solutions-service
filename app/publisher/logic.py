@@ -1,5 +1,11 @@
 from app.extensions import db
-from app.models import PlatformTypes, Publisher, Solution, SolutionStatus
+from app.models import (
+    PlatformTypes,
+    Publisher,
+    Solution,
+    SolutionStatus,
+    Creator,
+)
 from app.utils import serialize_solution
 import uuid
 from sqlalchemy import inspect
@@ -32,14 +38,38 @@ def get_solutions_by_lp_teams(teams: list[str]):
 
 
 def create_empty_solution(
-    name: str, publisher: str, description: str, created_by: str
+    name: str,
+    publisher: str,
+    description: str,
+    creator_email: str,
+    mattermost_handle: str = None,
+    matrix_handle: str = None,
 ):
+    creator = (
+        db.session.query(Creator)
+        .filter(Creator.email == creator_email)
+        .first()
+    )
+    if not creator:
+        creator = Creator(
+            email=creator_email,
+            mattermost_handle=mattermost_handle,
+            matrix_handle=matrix_handle,
+        )
+        db.session.add(creator)
+        db.session.flush()
+    else:
+        if mattermost_handle:
+            creator.mattermost_handle = mattermost_handle
+        if matrix_handle:
+            creator.matrix_handle = matrix_handle
+
     solution = Solution(
         hash=uuid.uuid4().hex[:16],
         revision=1,
         name=name,
         description=description,
-        created_by=created_by,
+        creator_id=creator.id,
         title=name,
         status=SolutionStatus.PENDING_NAME_REVIEW,
         publisher_id=publisher,
