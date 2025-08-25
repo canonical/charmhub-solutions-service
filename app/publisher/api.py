@@ -102,6 +102,21 @@ def get_solution_revision(name, rev):
 @publisher_bp.route("/solutions/<string:name>/", methods=["POST"])
 @login_required
 def create_solution_revision(name):
+    user = g.user
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    required_keys = ["creator_email"]
+
+    if not data or not all(key in data for key in required_keys):
+        return (
+            jsonify(
+                {"error": "Invalid request data, expected 'creator_email'"}
+            ),
+            400,
+        )
+
     current_solution = get_published_solution_by_name(name)
 
     if not current_solution:
@@ -116,7 +131,12 @@ def create_solution_revision(name):
     if draft_solution:
         return jsonify({"error": "Draft already exists"}), 400
 
-    solution = create_new_solution_revision(name)
+    solution = create_new_solution_revision(
+        name=name,
+        creator_email=data["creator_email"],
+        mattermost_handle=data.get("mattermost_handle"),
+        matrix_handle=data.get("matrix_handle"),
+    )
 
     return jsonify(solution), 200
 

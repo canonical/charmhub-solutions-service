@@ -80,7 +80,12 @@ def create_empty_solution(
     return serialize_solution(solution)
 
 
-def create_new_solution_revision(name: str):
+def create_new_solution_revision(
+    name: str,
+    creator_email: str,
+    mattermost_handle: str = None,
+    matrix_handle: str = None,
+):
     current_solution = (
         db.session.query(Solution)
         .filter(
@@ -93,6 +98,26 @@ def create_new_solution_revision(name: str):
     if not current_solution:
         return None
 
+    # Find or create creator for this revision
+    creator = (
+        db.session.query(Creator)
+        .filter(Creator.email == creator_email)
+        .first()
+    )
+    if not creator:
+        creator = Creator(
+            email=creator_email,
+            mattermost_handle=mattermost_handle,
+            matrix_handle=matrix_handle,
+        )
+        db.session.add(creator)
+        db.session.flush()
+    else:
+        if mattermost_handle:
+            creator.mattermost_handle = mattermost_handle
+        if matrix_handle:
+            creator.matrix_handle = matrix_handle
+
     mapper = inspect(Solution)
     data = {}
     for column in mapper.columns:
@@ -102,6 +127,7 @@ def create_new_solution_revision(name: str):
     data["hash"] = uuid.uuid4().hex[:16]
     data["revision"] = current_solution.revision + 1
     data["status"] = SolutionStatus.DRAFT
+    data["creator_id"] = creator.id  # Set the new creator for this revision
 
     new_solution = Solution(**data)
     db.session.add(new_solution)
