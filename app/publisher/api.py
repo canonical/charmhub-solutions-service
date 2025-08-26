@@ -19,8 +19,6 @@ publisher_bp = Blueprint("publisher", __name__)
 @login_required
 def get_publisher_solutions():
     user = g.user
-    if not user:
-        return jsonify({"error": "Unauthorized"}), 401
     teams = g.user["teams"]
     if not teams:
         teams = get_user_teams(user["username"])
@@ -33,8 +31,6 @@ def get_publisher_solutions():
 @login_required
 def register_solution():
     user = g.user
-    if not user:
-        return jsonify({"error": "Unauthorized"}), 401
     data = request.get_json()
     required_keys = ["name", "publisher", "description", "creator_email"]
 
@@ -103,9 +99,6 @@ def get_solution_revision(name, rev):
 @login_required
 def create_solution_revision(name):
     user = g.user
-    if not user:
-        return jsonify({"error": "Unauthorized"}), 401
-
     data = request.get_json()
     required_keys = ["creator_email"]
 
@@ -145,9 +138,6 @@ def create_solution_revision(name):
 @login_required
 def update_solution_revision(name, rev):
     user = g.user
-    if not user:
-        return jsonify({"error": "Unauthorized"}), 401
-
     solution = get_solution_by_name_and_rev(name, rev)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
