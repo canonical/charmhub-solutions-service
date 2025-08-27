@@ -49,4 +49,21 @@ def test_approve_metadata(mock_logic, client):
     mock_logic.assert_called_once_with("solution1")
 
 
+def test_dashboard_requires_login(client):
+    response = client.get("/")
+    assert response.status_code == 302
+    assert response.location.startswith("/login?next=")
 
+
+def test_dashboard_with_login(client):
+    with client.session_transaction() as session:
+        session["openid"] = {"identity_url": "test_user", "email": "test@example.com"}
+
+    with patch("app.dashboard.routes.Solution.query") as mock_query, patch(
+        "app.dashboard.routes.render_template"
+    ) as mock_render:
+        mock_query.options.return_value.all.return_value = []
+        mock_render.return_value = "Dashboard HTML"
+        response = client.get("/")
+        assert response.status_code == 200
+        mock_render.assert_called_once()
