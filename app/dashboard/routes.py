@@ -12,6 +12,7 @@ from app.reviewer.logic import (
     approve_solution_name,
     approve_solution_metadata,
 )
+from app.sso import dashboard_login_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -23,6 +24,7 @@ def status_check():
 
 
 @dashboard_bp.route("/")
+@dashboard_login_required
 def dashboard():
     solutions_query = Solution.query.options(
         joinedload(Solution.publisher), joinedload(Solution.creator)
@@ -59,10 +61,8 @@ def dashboard():
 
 
 @dashboard_bp.route("/<string:name>/approve-name", methods=["GET"])
-# @login_required
+@dashboard_login_required
 def approve_name(name):
-    # if "charmhub-solution-reviewers" not in g.user["teams"]:
-    #     return jsonify({"error": "Forbidden"}), 403
     solution = approve_solution_name(name)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
@@ -72,10 +72,8 @@ def approve_name(name):
 
 
 @dashboard_bp.route("/<string:name>/approve-metadata", methods=["GET"])
-# @login_required
+@dashboard_login_required
 def approve_metadata(name):
-    # if "charmhub-solution-reviewers" not in g.user["teams"]:
-    #     return jsonify({"error": "Forbidden"}), 403
     solution = approve_solution_metadata(name)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
