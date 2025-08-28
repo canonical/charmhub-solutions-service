@@ -19,8 +19,6 @@ publisher_bp = Blueprint("publisher", __name__)
 @login_required
 def get_publisher_solutions():
     user = g.user
-    if not user:
-        return jsonify({"error": "Unauthorized"}), 401
     teams = g.user["teams"]
     if not teams:
         teams = get_user_teams(user["username"])
@@ -33,16 +31,18 @@ def get_publisher_solutions():
 @login_required
 def register_solution():
     user = g.user
-    if not user:
-        return jsonify({"error": "Unauthorized"}), 401
     data = request.get_json()
-    if not data or not all(
-        key in data for key in ["name", "publisher", "description"]
-    ):
+    required_keys = ["name", "publisher", "description", "creator_email"]
+
+    if not data or not all(key in data for key in required_keys):
         return (
             jsonify(
                 {
-                    "error": f"Invalid request data, expected 'name', 'publisher', and 'description'"
+                    "error": (
+                        "Invalid request data, expected 'name', "
+                        "'publisher', 'description', and "
+                        "'creator_email'"
+                    )
                 }
             ),
             400,
@@ -69,7 +69,9 @@ def register_solution():
         name=data["name"],
         publisher=data["publisher"],
         description=data["description"],
-        created_by=user["username"],
+        creator_email=data["creator_email"],
+        mattermost_handle=data.get("mattermost_handle"),
+        matrix_handle=data.get("matrix_handle"),
     )
 
     if not res:
@@ -96,6 +98,18 @@ def get_solution_revision(name, rev):
 @publisher_bp.route("/solutions/<string:name>/", methods=["POST"])
 @login_required
 def create_solution_revision(name):
+    user = g.user
+    data = request.get_json()
+    required_keys = ["creator_email"]
+
+    if not data or not all(key in data for key in required_keys):
+        return (
+            jsonify(
+                {"error": "Invalid request data, expected 'creator_email'"}
+            ),
+            400,
+        )
+
     current_solution = get_published_solution_by_name(name)
 
     if not current_solution:
@@ -110,7 +124,12 @@ def create_solution_revision(name):
     if draft_solution:
         return jsonify({"error": "Draft already exists"}), 400
 
-    solution = create_new_solution_revision(name)
+    solution = create_new_solution_revision(
+        name=name,
+        creator_email=data["creator_email"],
+        mattermost_handle=data.get("mattermost_handle"),
+        matrix_handle=data.get("matrix_handle"),
+    )
 
     return jsonify(solution), 200
 
@@ -119,9 +138,6 @@ def create_solution_revision(name):
 @login_required
 def update_solution_revision(name, rev):
     user = g.user
-    if not user:
-        return jsonify({"error": "Unauthorized"}), 401
-
     solution = get_solution_by_name_and_rev(name, rev)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404

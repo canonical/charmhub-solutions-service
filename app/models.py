@@ -126,6 +126,9 @@ class Solution(db.Model):
     )
     creator: Mapped["Creator"] = relationship(back_populates="solutions")
 
+    # email address of reviewer who approves solution name and rev1
+    approved_by: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
     use_cases: Mapped[Optional[List["UseCase"]]] = relationship(
         back_populates="solution", cascade="all, delete-orphan"
     )

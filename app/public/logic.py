@@ -12,9 +12,7 @@ def _published_public_filter():
 
 def get_all_published_solutions():
     solutions = (
-        db.session.query(Solution)
-        .filter(*_published_public_filter())
-        .all()
+        db.session.query(Solution).filter(*_published_public_filter()).all()
     )
     return [serialize_solution(solution) for solution in solutions]
 

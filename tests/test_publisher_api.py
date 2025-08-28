@@ -73,7 +73,10 @@ def test_register_solution(
     response = client.post("/api/publisher/solutions", json={
         "name": "new-solution",
         "publisher": "team1", 
-        "description": "Test description"
+        "description": "Test description",
+        "creator_email": "test@example.com",
+        "mattermost_handle": "@testuser",
+        "matrix_handle": "@testuser:matrix.org"
     }, headers={"Authorization": "Bearer fake token"})
         
     assert response.status_code == 201
@@ -83,7 +86,9 @@ def test_register_solution(
         name="new-solution",
         publisher="team1",
         description="Test description",
-        created_by="testuser"
+        creator_email="test@example.com",
+        mattermost_handle="@testuser",
+        matrix_handle="@testuser:matrix.org"
     )
 
 
@@ -100,7 +105,8 @@ def test_register_solution_duplicate_name(mock_get_solution_by_name, mock_decode
     response = client.post("/api/publisher/solutions", json={
         "name": "existing-solution",
         "publisher": "team1",
-        "description": "Test description"
+        "description": "Test description",
+        "creator_email": "test@example.com"
     }, headers={"Authorization": "Bearer fake token"})
         
     assert response.status_code == 400
@@ -208,7 +214,8 @@ def test_complete_solution_creation_flow(
     response = client.post("/api/publisher/solutions", json={
         "name": "test-solution",
         "publisher": "team1",
-        "description": "Test description"
+        "description": "Test description",
+        "creator_email": "test@example.com"
     }, headers={"Authorization": "Bearer fake token"})
     
     assert response.status_code == 201
@@ -251,5 +258,7 @@ def test_complete_solution_creation_flow(
         name="test-solution",
         publisher="team1",
         description="Test description",
-        created_by="testuser"
+        creator_email="test@example.com",
+        mattermost_handle=None,
+        matrix_handle=None
     )
