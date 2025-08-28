@@ -270,7 +270,7 @@ class ReviewAction(db.Model):
     solution_id: Mapped[int] = mapped_column(
         ForeignKey("solution.id"), nullable=False
     )
-    # Launchpad username
+    # Canonical email
     reviewer_id: Mapped[str] = mapped_column(String, nullable=False)
     action: Mapped[ReviewerActionType] = mapped_column(
         Enum(ReviewerActionType), nullable=False
