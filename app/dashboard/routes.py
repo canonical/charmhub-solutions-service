@@ -5,6 +5,7 @@ from flask import (
     redirect,
     url_for,
     current_app,
+    session,
 )
 from app.models import Solution, SolutionStatus
 from sqlalchemy.orm import joinedload
@@ -15,6 +16,12 @@ from app.reviewer.logic import (
 from app.sso import dashboard_login_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
+
+
+def get_reviewer_id():
+    if "openid" not in session:
+        return None
+    return session["openid"].get("email", "")
 
 
 @dashboard_bp.route("/_status/check")
@@ -63,7 +70,10 @@ def dashboard():
 @dashboard_bp.route("/<string:name>/approve-name", methods=["GET"])
 @dashboard_login_required
 def approve_name(name):
-    solution = approve_solution_name(name)
+    reviewer_id = get_reviewer_id()
+    if not reviewer_id:
+        return jsonify({"error": "Reviewer ID not found in session"}), 400
+    solution = approve_solution_name(name, reviewer_id)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
     if current_app.config.get("TESTING"):
@@ -74,7 +84,10 @@ def approve_name(name):
 @dashboard_bp.route("/<string:name>/approve-metadata", methods=["GET"])
 @dashboard_login_required
 def approve_metadata(name):
-    solution = approve_solution_metadata(name)
+    reviewer_id = get_reviewer_id()
+    if not reviewer_id:
+        return jsonify({"error": "Reviewer ID not found in session"}), 400
+    solution = approve_solution_metadata(name, reviewer_id)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
     if current_app.config.get("TESTING"):

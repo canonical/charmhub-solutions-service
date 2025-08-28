@@ -34,7 +34,7 @@ def test_approve_name(mock_logic, client):
     assert response.status_code == 200
     assert response.get_json()["name"] == "solution1"
     assert response.get_json()["status"] == "draft"
-    mock_logic.assert_called_once_with("solution1")
+    mock_logic.assert_called_once_with("solution1", "test@example.com")
 
 
 @patch("app.dashboard.routes.approve_solution_metadata")
@@ -46,7 +46,7 @@ def test_approve_metadata(mock_logic, client):
 
     assert response.status_code == 200
     assert response.get_json()["status"] == "published"
-    mock_logic.assert_called_once_with("solution1")
+    mock_logic.assert_called_once_with("solution1", "test@example.com")
 
 
 def test_dashboard_requires_login(client):
