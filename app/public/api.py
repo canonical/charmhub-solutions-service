@@ -35,7 +35,6 @@ def login():
         teams = get_user_teams(username)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    print(teams)
 
     payload = {
         "sub": username,

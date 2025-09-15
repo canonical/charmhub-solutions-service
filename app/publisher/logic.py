@@ -5,11 +5,112 @@ from app.models import (
     Solution,
     SolutionStatus,
     Creator,
+    Visibility,
 )
 from app.utils import serialize_solution
+from app.public.store_api import get_publisher_details
+from app.exceptions import ValidationError
 import uuid
+import re
 from sqlalchemy import inspect
 from datetime import datetime, timezone
+
+
+def find_or_create_creator(
+    creator_email: str,
+    mattermost_handle: str = None,
+    matrix_handle: str = None,
+):
+    creator = (
+        db.session.query(Creator)
+        .filter(Creator.email == creator_email)
+        .first()
+    )
+    if not creator:
+        creator = Creator(
+            email=creator_email,
+            mattermost_handle=mattermost_handle,
+            matrix_handle=matrix_handle,
+        )
+        db.session.add(creator)
+        db.session.flush()
+    else:
+        if mattermost_handle:
+            creator.mattermost_handle = mattermost_handle
+        if matrix_handle:
+            creator.matrix_handle = matrix_handle
+
+    return creator
+
+
+def validate_solution_name(name: str) -> bool:
+    if not name:
+        return False
+
+    if not re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", name):
+        return False
+
+    if not re.search(r"[a-z]", name):
+        return False
+
+    return True
+
+
+def register_solution_package(
+    teams: list,
+    name: str,
+    publisher: str,
+    summary: str,
+    creator_email: str,
+    title: str = None,
+    platform: str = "kubernetes",
+    mattermost_handle: str = None,
+    matrix_handle: str = None,
+):
+    if not validate_solution_name(name):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-name",
+                    "message": "Name format is invalid. "
+                    "Must be lowercase letters, numbers, "
+                    "and hyphens only, with at least one letter.",
+                }
+            ]
+        )
+
+    existing_solution = get_solution_by_name(name)
+    if existing_solution:
+        raise ValidationError(
+            [
+                {
+                    "code": "already-registered",
+                    "message": "A solution with this name "
+                    "already exists.",
+                }
+            ]
+        )
+
+    if publisher not in teams:
+        raise ValidationError(
+            [
+                {
+                    "code": "access-denied",
+                    "message": "User must be a member of publishing group",
+                }
+            ]
+        )
+
+    return create_empty_solution(
+        name=name,
+        publisher=publisher,
+        summary=summary,
+        creator_email=creator_email,
+        title=title,
+        platform=platform,
+        mattermost_handle=mattermost_handle,
+        matrix_handle=matrix_handle,
+    )
 
 
 def get_solution_by_name(name: str):
@@ -40,44 +141,67 @@ def get_solutions_by_lp_teams(teams: list[str]):
 def create_empty_solution(
     name: str,
     publisher: str,
-    description: str,
+    summary: str,
     creator_email: str,
+    title: str = None,
+    platform: str = "kubernetes",
     mattermost_handle: str = None,
     matrix_handle: str = None,
 ):
-    creator = (
-        db.session.query(Creator)
-        .filter(Creator.email == creator_email)
-        .first()
-    )
-    if not creator:
-        creator = Creator(
-            email=creator_email,
-            mattermost_handle=mattermost_handle,
-            matrix_handle=matrix_handle,
+    try:
+        creator = find_or_create_creator(
+            creator_email, mattermost_handle, matrix_handle
         )
-        db.session.add(creator)
-        db.session.flush()
-    else:
-        if mattermost_handle:
-            creator.mattermost_handle = mattermost_handle
-        if matrix_handle:
-            creator.matrix_handle = matrix_handle
 
-    solution = Solution(
-        hash=uuid.uuid4().hex[:16],
-        revision=1,
-        name=name,
-        description=description,
-        creator_id=creator.id,
-        title=name,
-        status=SolutionStatus.PENDING_NAME_REVIEW,
-        publisher_id=publisher,
-        platform=PlatformTypes.KUBERNETES,
-    )
-    db.session.add(solution)
-    db.session.commit()
-    return serialize_solution(solution)
+        publisher_record = (
+            db.session.query(Publisher)
+            .filter(Publisher.username == publisher)
+            .first()
+        )
+
+        if not publisher_record:
+            publisher_details = get_publisher_details(publisher)
+
+            if publisher_details and publisher_details.get("id"):
+                publisher_id = publisher_details["id"]
+                display_name = publisher_details["display_name"]
+                username = publisher_details["username"]
+            else:
+                publisher_id = publisher
+                display_name = publisher
+                username = publisher
+
+            publisher_record = Publisher(
+                publisher_id=publisher_id,
+                username=username,
+                display_name=display_name,
+            )
+            db.session.add(publisher_record)
+            db.session.flush()
+
+        platform_type = PlatformTypes.KUBERNETES
+        if platform.lower() == "machine":
+            platform_type = PlatformTypes.MACHINE
+
+        solution = Solution(
+            hash=uuid.uuid4().hex[:16],
+            revision=1,
+            name=name,
+            summary=summary,
+            creator_id=creator.id,
+            title=title or name,
+            status=SolutionStatus.PENDING_NAME_REVIEW,
+            publisher_id=publisher_record.publisher_id,
+            platform=platform_type,
+            visibility=Visibility.PRIVATE,
+        )
+        db.session.add(solution)
+        db.session.commit()
+        return serialize_solution(solution)
+
+    except Exception:
+        db.session.rollback()
+        raise
 
 
 def create_new_solution_revision(
@@ -98,41 +222,32 @@ def create_new_solution_revision(
     if not current_solution:
         return None
 
-    # Find or create creator for this revision
-    creator = (
-        db.session.query(Creator)
-        .filter(Creator.email == creator_email)
-        .first()
-    )
-    if not creator:
-        creator = Creator(
-            email=creator_email,
-            mattermost_handle=mattermost_handle,
-            matrix_handle=matrix_handle,
+    try:
+        creator = find_or_create_creator(
+            creator_email, mattermost_handle, matrix_handle
         )
-        db.session.add(creator)
-        db.session.flush()
-    else:
-        if mattermost_handle:
-            creator.mattermost_handle = mattermost_handle
-        if matrix_handle:
-            creator.matrix_handle = matrix_handle
 
-    mapper = inspect(Solution)
-    data = {}
-    for column in mapper.columns:
-        if column.key not in ["id"]:
-            data[column.key] = getattr(current_solution, column.key)
+        mapper = inspect(Solution)
+        data = {}
+        for column in mapper.columns:
+            if column.key not in ["id"]:
+                data[column.key] = getattr(current_solution, column.key)
 
-    data["hash"] = uuid.uuid4().hex[:16]
-    data["revision"] = current_solution.revision + 1
-    data["status"] = SolutionStatus.DRAFT
-    data["creator_id"] = creator.id  # Set the new creator for this revision
+        data["hash"] = uuid.uuid4().hex[:16]
+        data["revision"] = current_solution.revision + 1
+        data["status"] = SolutionStatus.DRAFT
+        data["creator_id"] = (
+            creator.id
+        )  # Set the new creator for this revision
 
-    new_solution = Solution(**data)
-    db.session.add(new_solution)
-    db.session.commit()
-    return serialize_solution(new_solution)
+        new_solution = Solution(**data)
+        db.session.add(new_solution)
+        db.session.commit()
+        return serialize_solution(new_solution)
+
+    except Exception:
+        db.session.rollback()
+        raise
 
 
 def get_draft_solution_by_name(name: str):

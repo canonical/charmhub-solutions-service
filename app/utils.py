@@ -8,6 +8,7 @@ def serialize_solution(solution: Solution) -> dict:
         "hash": solution.hash,
         "revision": solution.revision,
         "status": solution.status.value,
+        "visibility": solution.visibility.value,
         "title": solution.title,
         "summary": solution.summary,
         "description": solution.description,
