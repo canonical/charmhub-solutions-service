@@ -6,7 +6,6 @@ description: |
     The rock for the service behind the charmhub solutions service
 platforms:
     amd64:
-    arm64:
 extensions:
     - flask-framework
 
