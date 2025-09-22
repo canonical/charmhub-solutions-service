@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 from app.publisher.logic import (
     find_or_create_creator,
     register_solution_package,
+    create_empty_solution
 )
 from app.models import Creator
 from app.exceptions import ValidationError
@@ -60,13 +61,14 @@ class TestFindOrCreateCreator:
 
 class TestRegisterSolutionPackage:
     def test_invalid_name_validation(self):
+        mock_creator = Mock(id=1)
         with pytest.raises(ValidationError) as exc_info:
             register_solution_package(
                 teams=["test-team"],
                 name="Invalid_Name!",
                 publisher="test-team",
                 summary="Test summary",
-                creator_email="test@example.com",
+                creator=mock_creator,
             )
 
         errors = exc_info.value.errors
@@ -77,13 +79,14 @@ class TestRegisterSolutionPackage:
         )
 
     def test_no_letters_validation(self):
+        mock_creator = Mock(id=1)
         with pytest.raises(ValidationError) as exc_info:
             register_solution_package(
                 teams=["test-team"],
                 name="123-456",
                 publisher="test-team",
                 summary="Test summary",
-                creator_email="test@example.com",
+                creator=mock_creator,
             )
 
         errors = exc_info.value.errors
@@ -93,6 +96,7 @@ class TestRegisterSolutionPackage:
     @patch("app.publisher.logic.get_solution_by_name")
     def test_already_exists_validation(self, mock_get_solution):
         mock_get_solution.return_value = {"name": "existing-solution"}
+        mock_creator = Mock(id=1)
 
         with pytest.raises(ValidationError) as exc_info:
             register_solution_package(
@@ -100,7 +104,7 @@ class TestRegisterSolutionPackage:
                 name="existing-solution",
                 publisher="test-team",
                 summary="Test summary",
-                creator_email="test@example.com",
+                creator=mock_creator,
             )
 
         errors = exc_info.value.errors
@@ -110,6 +114,7 @@ class TestRegisterSolutionPackage:
     @patch("app.publisher.logic.get_solution_by_name")
     def test_access_denied_validation(self, mock_get_solution):
         mock_get_solution.return_value = None
+        mock_creator = Mock(id=1)
 
         with pytest.raises(ValidationError) as exc_info:
             register_solution_package(
@@ -117,7 +122,7 @@ class TestRegisterSolutionPackage:
                 name="valid-name",
                 publisher="different-team",
                 summary="Test summary",
-                creator_email="test@example.com",
+                creator=mock_creator,
             )
 
         errors = exc_info.value.errors
@@ -130,6 +135,7 @@ class TestRegisterSolutionPackage:
         self, mock_get_solution, mock_create_solution
     ):
         mock_get_solution.return_value = None
+        mock_creator = Mock(id=1)
         mock_create_solution.return_value = {"name": "test-solution"}
 
         result = register_solution_package(
@@ -137,7 +143,7 @@ class TestRegisterSolutionPackage:
             name="test-solution",
             publisher="test-team",
             summary="Test summary",
-            creator_email="test@example.com",
+            creator=mock_creator,
         )
 
         mock_create_solution.assert_called_once()
@@ -146,11 +152,8 @@ class TestRegisterSolutionPackage:
 
 class TestTransactionSafety:
     @patch("app.publisher.logic.db.session")
-    @patch("app.publisher.logic.find_or_create_creator")
-    def test_rollback_on_exception(self, mock_find_creator, mock_session):
-        from app.publisher.logic import create_empty_solution
-
-        mock_find_creator.return_value = Mock(id=1)
+    def test_rollback_on_exception(self, mock_session):
+        mock_creator = Mock(id=1)
         mock_session.query().filter().first.return_value = None
 
         mock_session.commit.side_effect = Exception("Database error")
@@ -160,7 +163,7 @@ class TestTransactionSafety:
                 name="test-solution",
                 publisher="test-publisher",
                 summary="Test summary",
-                creator_email="test@example.com",
+                creator=mock_creator,
             )
 
         mock_session.rollback.assert_called_once()

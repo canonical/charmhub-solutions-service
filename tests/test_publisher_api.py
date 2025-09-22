@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from flask import Flask
 from app.publisher.api import publisher_bp
 from app.exceptions import ValidationError
@@ -55,14 +55,18 @@ def test_get_publisher_solutions(
 
 
 @patch("app.public.auth.decode_jwt_token")
+@patch("app.publisher.api.publisher_logic.find_or_create_creator")
 @patch("app.publisher.api.publisher_logic.register_solution_package")
 def test_register_solution(
-    mock_register_solution_package, mock_decode_jwt_token, client
+    mock_register_solution_package, mock_find_or_create_creator, mock_decode_jwt_token, client
 ):
     mock_decode_jwt_token.return_value = {
         "sub": "testuser",
         "teams": ["team1", "team2"],
     }
+
+    mock_creator = Mock(id=1)
+    mock_find_or_create_creator.return_value = mock_creator
 
     mock_register_solution_package.return_value = {
         "name": "new-solution",
@@ -86,28 +90,35 @@ def test_register_solution(
     assert response.status_code == 201
     data = response.get_json()
     assert data["name"] == "new-solution"
+    mock_find_or_create_creator.assert_called_once_with(
+        "test@example.com",
+        "@testuser",
+        "@testuser:matrix.org",
+    )
     mock_register_solution_package.assert_called_once_with(
         teams=["team1", "team2"],
         name="new-solution",
         publisher="team1",
         summary="Test summary",
-        creator_email="test@example.com",
-        mattermost_handle="@testuser",
-        matrix_handle="@testuser:matrix.org",
+        creator=mock_creator,
         title=None,
         platform="kubernetes",
     )
 
 
 @patch("app.public.auth.decode_jwt_token")
+@patch("app.publisher.api.publisher_logic.find_or_create_creator")
 @patch("app.publisher.api.publisher_logic.register_solution_package")
 def test_register_solution_duplicate_name(
-    mock_register_solution_package, mock_decode_jwt_token, client
+    mock_register_solution_package, mock_find_or_create_creator, mock_decode_jwt_token, client
 ):
     mock_decode_jwt_token.return_value = {
         "sub": "testuser",
         "teams": ["team1"],
     }
+
+    mock_creator = Mock(id=1)
+    mock_find_or_create_creator.return_value = mock_creator
 
     mock_register_solution_package.side_effect = ValidationError(
         [
@@ -217,6 +228,7 @@ def test_update_solution_revision_greater_than_1(
 
 
 @patch("app.public.auth.decode_jwt_token")
+@patch("app.publisher.api.publisher_logic.find_or_create_creator")
 @patch("app.publisher.api.publisher_logic.register_solution_package")
 @patch("app.publisher.api.publisher_logic.update_solution_metadata")
 @patch("app.publisher.api.publisher_logic.get_solution_by_name_and_rev")
@@ -226,6 +238,7 @@ def test_complete_solution_creation_flow(
     mock_get_solution_by_name_and_rev,
     mock_update_metadata,
     mock_register_solution_package,
+    mock_find_or_create_creator,
     mock_decode_jwt_token,
     client,
 ):
@@ -234,6 +247,9 @@ def test_complete_solution_creation_flow(
         "sub": "testuser",
         "teams": ["team1"],
     }
+
+    mock_creator = Mock(id=1)
+    mock_find_or_create_creator.return_value = mock_creator
 
     # Step 1: register solution name (PENDING_NAME_REVIEW)
     mock_register_solution_package.return_value = {
@@ -292,14 +308,17 @@ def test_complete_solution_creation_flow(
     assert data["title"] == "Test Solution Title"
     assert data["status"] == "pending_metadata_review"
 
+    mock_find_or_create_creator.assert_called_once_with(
+        "test@example.com",
+        None,
+        None,
+    )
     mock_register_solution_package.assert_called_once_with(
         teams=["team1"],
         name="test-solution",
         publisher="team1",
         summary="Test summary",
-        creator_email="test@example.com",
+        creator=mock_creator,
         title=None,
         platform="kubernetes",
-        mattermost_handle=None,
-        matrix_handle=None,
     )

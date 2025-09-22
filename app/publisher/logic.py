@@ -6,6 +6,7 @@ from app.models import (
     SolutionStatus,
     Creator,
     Visibility,
+    Creator,
 )
 from app.utils import serialize_solution
 from app.public.store_api import get_publisher_details
@@ -22,9 +23,7 @@ def find_or_create_creator(
     matrix_handle: str = None,
 ):
     creator = (
-        db.session.query(Creator)
-        .filter(Creator.email == creator_email)
-        .first()
+        db.session.query(Creator).filter(Creator.email == creator_email).first()
     )
     if not creator:
         creator = Creator(
@@ -61,11 +60,9 @@ def register_solution_package(
     name: str,
     publisher: str,
     summary: str,
-    creator_email: str,
+    creator: Creator,
     title: str = None,
     platform: str = "kubernetes",
-    mattermost_handle: str = None,
-    matrix_handle: str = None,
 ):
     if not validate_solution_name(name):
         raise ValidationError(
@@ -85,8 +82,7 @@ def register_solution_package(
             [
                 {
                     "code": "already-registered",
-                    "message": "A solution with this name "
-                    "already exists.",
+                    "message": "A solution with this name " "already exists.",
                 }
             ]
         )
@@ -105,11 +101,9 @@ def register_solution_package(
         name=name,
         publisher=publisher,
         summary=summary,
-        creator_email=creator_email,
+        creator=creator,
         title=title,
         platform=platform,
-        mattermost_handle=mattermost_handle,
-        matrix_handle=matrix_handle,
     )
 
 
@@ -142,16 +136,11 @@ def create_empty_solution(
     name: str,
     publisher: str,
     summary: str,
-    creator_email: str,
+    creator: Creator,
     title: str = None,
     platform: str = "kubernetes",
-    mattermost_handle: str = None,
-    matrix_handle: str = None,
 ):
     try:
-        creator = find_or_create_creator(
-            creator_email, mattermost_handle, matrix_handle
-        )
 
         publisher_record = (
             db.session.query(Publisher)
@@ -206,9 +195,7 @@ def create_empty_solution(
 
 def create_new_solution_revision(
     name: str,
-    creator_email: str,
-    mattermost_handle: str = None,
-    matrix_handle: str = None,
+    creator: Creator,
 ):
     current_solution = (
         db.session.query(Solution)
@@ -223,9 +210,6 @@ def create_new_solution_revision(
         return None
 
     try:
-        creator = find_or_create_creator(
-            creator_email, mattermost_handle, matrix_handle
-        )
 
         mapper = inspect(Solution)
         data = {}
@@ -236,9 +220,7 @@ def create_new_solution_revision(
         data["hash"] = uuid.uuid4().hex[:16]
         data["revision"] = current_solution.revision + 1
         data["status"] = SolutionStatus.DRAFT
-        data["creator_id"] = (
-            creator.id
-        )  # Set the new creator for this revision
+        data["creator_id"] = creator.id  # Set the new creator for this revision
 
         new_solution = Solution(**data)
         db.session.add(new_solution)

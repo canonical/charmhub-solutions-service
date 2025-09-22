@@ -52,16 +52,20 @@ def register_solution():
         teams = get_user_teams(g.user["username"])
 
     try:
+        creator = publisher_logic.find_or_create_creator(
+            data["creator_email"],
+            data.get("mattermost_handle"),
+            data.get("matrix_handle"),
+        )
+
         solution = publisher_logic.register_solution_package(
             teams=teams,
             name=data["name"],
             publisher=data["publisher"],
             summary=data["summary"],
-            creator_email=data["creator_email"],
+            creator=creator,
             title=data.get("title"),
             platform=data.get("platform", "kubernetes"),
-            mattermost_handle=data.get("mattermost_handle"),
-            matrix_handle=data.get("matrix_handle"),
         )
 
         return jsonify(solution), 201
@@ -89,7 +93,6 @@ def get_solution_revision(name, rev):
 @publisher_bp.route("/solutions/<string:name>/", methods=["POST"])
 @login_required
 def create_solution_revision(name):
-    user = g.user
     data = request.get_json()
     required_keys = ["creator_email"]
 
@@ -115,11 +118,15 @@ def create_solution_revision(name):
     if draft_solution:
         return jsonify({"error": "Draft already exists"}), 400
 
+    creator = publisher_logic.find_or_create_creator(
+        data["creator_email"],
+        data.get("mattermost_handle"),
+        data.get("matrix_handle"),
+    )
+
     solution = publisher_logic.create_new_solution_revision(
         name=name,
-        creator_email=data["creator_email"],
-        mattermost_handle=data.get("mattermost_handle"),
-        matrix_handle=data.get("matrix_handle"),
+        creator=creator,
     )
 
     return jsonify(solution), 200
@@ -144,9 +151,7 @@ def update_solution_revision(name, rev):
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    updated_solution = publisher_logic.update_solution_metadata(
-        name, rev, data
-    )
+    updated_solution = publisher_logic.update_solution_metadata(name, rev, data)
 
     if not updated_solution:
         return jsonify({"error": "Failed to update solution"}), 500
