@@ -28,7 +28,7 @@ def client(app):
 
 
 @patch("app.public.auth.decode_jwt_token")
-@patch("app.publisher.api.publisher_logic.get_solutions_by_lp_teams")
+@patch("app.publisher.api.get_solutions_by_lp_teams")
 def test_get_publisher_solutions(
     mock_get_solutions_by_lp_teams, mock_decode_jwt_token, client
 ):
@@ -55,8 +55,8 @@ def test_get_publisher_solutions(
 
 
 @patch("app.public.auth.decode_jwt_token")
-@patch("app.publisher.api.publisher_logic.find_or_create_creator")
-@patch("app.publisher.api.publisher_logic.register_solution_package")
+@patch("app.publisher.api.find_or_create_creator")
+@patch("app.publisher.api.register_solution_package")
 def test_register_solution(
     mock_register_solution_package, mock_find_or_create_creator, mock_decode_jwt_token, client
 ):
@@ -107,8 +107,8 @@ def test_register_solution(
 
 
 @patch("app.public.auth.decode_jwt_token")
-@patch("app.publisher.api.publisher_logic.find_or_create_creator")
-@patch("app.publisher.api.publisher_logic.register_solution_package")
+@patch("app.publisher.api.find_or_create_creator")
+@patch("app.publisher.api.register_solution_package")
 def test_register_solution_duplicate_name(
     mock_register_solution_package, mock_find_or_create_creator, mock_decode_jwt_token, client
 ):
@@ -147,8 +147,8 @@ def test_register_solution_duplicate_name(
 
 
 @patch("app.public.auth.decode_jwt_token")
-@patch("app.publisher.api.publisher_logic.update_solution_metadata")
-@patch("app.publisher.api.publisher_logic.get_solution_by_name_and_rev")
+@patch("app.publisher.api.update_solution_metadata")
+@patch("app.publisher.api.get_solution_by_name_and_rev")
 def test_update_solution_revision_1(
     mock_get_solution_by_name_and_rev,
     mock_update_solution_metadata,
@@ -190,8 +190,8 @@ def test_update_solution_revision_1(
 
 
 @patch("app.public.auth.decode_jwt_token")
-@patch("app.publisher.api.publisher_logic.update_solution_metadata")
-@patch("app.publisher.api.publisher_logic.get_solution_by_name_and_rev")
+@patch("app.publisher.api.update_solution_metadata")
+@patch("app.publisher.api.get_solution_by_name_and_rev")
 def test_update_solution_revision_greater_than_1(
     mock_get_solution_by_name_and_rev,
     mock_update_solution_metadata,
@@ -228,10 +228,10 @@ def test_update_solution_revision_greater_than_1(
 
 
 @patch("app.public.auth.decode_jwt_token")
-@patch("app.publisher.api.publisher_logic.find_or_create_creator")
-@patch("app.publisher.api.publisher_logic.register_solution_package")
-@patch("app.publisher.api.publisher_logic.update_solution_metadata")
-@patch("app.publisher.api.publisher_logic.get_solution_by_name_and_rev")
+@patch("app.publisher.api.find_or_create_creator")
+@patch("app.publisher.api.register_solution_package")
+@patch("app.publisher.api.update_solution_metadata")
+@patch("app.publisher.api.get_solution_by_name_and_rev")
 @patch("app.reviewer.logic.approve_solution_name")
 def test_complete_solution_creation_flow(
     mock_approve_name,
