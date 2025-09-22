@@ -151,10 +151,17 @@ class TestRegisterSolutionPackage:
 
 
 class TestTransactionSafety:
+    @patch("app.publisher.logic.get_publisher_details")
     @patch("app.publisher.logic.db.session")
-    def test_rollback_on_exception(self, mock_session):
+    def test_rollback_on_exception(self, mock_session, mock_get_publisher_details):
         mock_creator = Mock(id=1)
         mock_session.query().filter().first.return_value = None
+
+        mock_get_publisher_details.return_value = {
+            "id": "test-publisher-id",
+            "username": "test-publisher",
+            "display_name": "Test Publisher"
+        }
 
         mock_session.commit.side_effect = Exception("Database error")
 

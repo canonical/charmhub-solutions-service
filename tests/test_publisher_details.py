@@ -1,5 +1,7 @@
+import pytest
 from unittest.mock import patch
 from app.public.store_api import get_publisher_details
+from app.exceptions import ValidationError
 
 
 class TestGetPublisherDetails:
@@ -36,25 +38,25 @@ class TestGetPublisherDetails:
         mock_response = {"results": []}
         mock_gateway.find.return_value = mock_response
 
-        result = get_publisher_details("new-publisher")
+        with pytest.raises(ValidationError) as exception_info:
+            get_publisher_details("new-publisher")
 
-        assert result == {
-            "id": "new-publisher",
-            "username": "new-publisher",
-            "display_name": "new-publisher",
-        }
+        errors = exception_info.value.errors
+        assert len(errors) == 1
+        assert errors[0]["code"] == "invalid-publisher"
+        assert errors[0]["message"] == "Publisher not found"
 
     @patch("app.public.store_api.device_gateway")
     def test_device_gateway_error(self, mock_gateway):
         mock_gateway.find.side_effect = ConnectionError("Network error")
 
-        result = get_publisher_details("error-publisher")
+        with pytest.raises(ValidationError) as exception_info:
+            get_publisher_details("error-publisher")
 
-        assert result == {
-            "id": "error-publisher",
-            "username": "error-publisher",
-            "display_name": "error-publisher",
-        }
+        errors = exception_info.value.errors
+        assert len(errors) == 1
+        assert errors[0]["code"] == "invalid-publisher"
+        assert errors[0]["message"] == "Publisher not found"
 
     @patch("app.public.store_api.device_gateway")
     def test_incorrect_response(self, mock_gateway):

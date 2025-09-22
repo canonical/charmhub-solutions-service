@@ -1,13 +1,13 @@
 from flask import Blueprint, jsonify, g, request
 from app.publisher.logic import (
-      get_solutions_by_lp_teams,
-      create_new_solution_revision,
-      get_draft_solution_by_name,
-      get_solution_by_name_and_rev,
-      update_solution_metadata,
-      register_solution_package,
-      find_or_create_creator,
-  )
+    get_solutions_by_lp_teams,
+    create_new_solution_revision,
+    get_draft_solution_by_name,
+    get_solution_by_name_and_rev,
+    update_solution_metadata,
+    register_solution_package,
+    find_or_create_creator,
+)
 from app.public.logic import get_published_solution_by_name
 from app.public.auth import login_required
 from app.public.launchpad import get_user_teams
@@ -78,7 +78,7 @@ def register_solution():
 @publisher_bp.route("/solutions/<string:name>/<int:rev>", methods=["GET"])
 @login_required
 def get_solution_revision(name, rev):
-    solution = publisher_logic.get_solution_by_name_and_rev(name, rev)
+    solution = get_solution_by_name_and_rev(name, rev)
 
     if not solution:
         return jsonify({"error": "Solution revision not found"}), 404

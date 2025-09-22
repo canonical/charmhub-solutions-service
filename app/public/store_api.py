@@ -1,4 +1,6 @@
 from canonicalwebteam.store_api.devicegw import DeviceGW
+import logging
+from app.exceptions import ValidationError
 
 device_gateway = DeviceGW("charm")
 
@@ -23,15 +25,21 @@ def get_publisher_details(publisher_username):
                 or publisher_data.get("display_name"),
             }
         else:
-            return {
-                "id": publisher_username,
-                "username": publisher_username,
-                "display_name": publisher_username,
-            }
+            raise ValidationError(
+                [
+                    {
+                        "code": "invalid-publisher",
+                        "message": "Publisher not found",
+                    }
+                ]
+            )
 
-    except Exception:
-        return {
-            "id": publisher_username,
-            "username": publisher_username,
-            "display_name": publisher_username,
-        }
+    except ValidationError:
+        raise
+    except Exception as e:
+        logging.error(
+            f"Failed to fetch publisher details for {publisher_username}: {e}"
+        )
+        raise ValidationError(
+            [{"code": "invalid-publisher", "message": "Publisher not found"}]
+        )
