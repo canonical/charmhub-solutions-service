@@ -55,6 +55,16 @@ def validate_solution_name(name: str) -> bool:
     return True
 
 
+def validate_solution_title(title: str) -> bool:
+    if not title:
+        return False
+
+    if not re.match(r"^[\w\s]+$", title):
+        return False
+
+    return True
+
+
 def register_solution_package(
     teams: list,
     name: str,
@@ -71,7 +81,20 @@ def register_solution_package(
                     "code": "invalid-name",
                     "message": "Name format is invalid. "
                     "Must be lowercase letters, numbers, "
-                    "and hyphens only, with at least one letter.",
+                    "and hyphens only, with at least one letter. "
+                    "The name cannot start or end with a hyphen.",
+                }
+            ]
+        )
+
+    if title and not validate_solution_title(title):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-title",
+                    "message": "Title format is invalid. "
+                    "Must contain only word characters "
+                    "(letters, numbers, underscores) and spaces.",
                 }
             ]
         )
