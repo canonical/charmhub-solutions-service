@@ -2,6 +2,7 @@ import functools
 
 import flask
 from django_openid_auth.teams import TeamsRequest, TeamsResponse
+from urllib.parse import quote_plus
 from flask_openid import OpenID
 
 SSO_LOGIN_URL = "https://login.ubuntu.com"
@@ -21,16 +22,24 @@ def init_sso(app: flask.Flask):
     @open_id.loginhandler
     def login():
         if "openid" in flask.session:
-            if flask.request.is_secure:
-                return flask.redirect(
-                    open_id.get_next_url().replace("http://", "https://")
-                )
             return flask.redirect(open_id.get_next_url())
 
         teams_request = TeamsRequest(query_membership=[SSO_TEAM])
         return open_id.try_login(
             SSO_LOGIN_URL, ask_for=["email"], extensions=[teams_request]
         )
+
+    @app.before_request
+    def before_request():
+        if flask.request.path == "/login":
+            return
+        if flask.request.path.startswith("/_status"):
+            return
+        if "openid" not in flask.session:
+            return flask.redirect(
+                "/login?next=" + quote_plus(flask.request.path)
+            )
+
 
     @open_id.after_login
     def after_login(resp):
