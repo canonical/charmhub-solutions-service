@@ -11,8 +11,6 @@ def create_app():
     app = Flask(__name__, template_folder="templates")
     app.config.from_object(Config)
 
-    init_sso(app)
-
     db.init_app(app)
     migrate.init_app(app, db)
 
@@ -20,6 +18,8 @@ def create_app():
         app.register_blueprint(dashboard_bp, url_prefix="/")
         app.register_blueprint(public_bp, url_prefix="/api")
         app.register_blueprint(publisher_bp, url_prefix="/api/publisher")
+
+    init_sso(app)
 
     return app
 
