@@ -17,9 +17,9 @@ def create_app():
     migrate.init_app(app, db)
 
     with app.app_context():
+        app.register_blueprint(dashboard_bp, url_prefix="/")
         app.register_blueprint(public_bp, url_prefix="/api")
         app.register_blueprint(publisher_bp, url_prefix="/api/publisher")
-        app.register_blueprint(dashboard_bp, url_prefix="/")
 
     return app
 
