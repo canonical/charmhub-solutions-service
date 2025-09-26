@@ -40,9 +40,9 @@ def seed_database():
                 "title": "Canonical Observability Solution",
                 "revision": "1",
                 "publisher": {
-                    "display_name": "Canonical Observability",
-                    "id": "YxSUHAediGjeTqb4HzzVHr2zeUOjpG86",
-                    "username": "observability",
+                    "display_name": "Canonical Webmonkeys",
+                    "id": "canonical-webmonkeys",
+                    "username": "canonical-webmonkeys",
                 },
                 "creator": {
                     "email": "creator1@canonical.com",
@@ -133,6 +133,7 @@ def seed_database():
                     "architecture_diagram": "https://assets.ubuntu.com/v1/58293406-cos.png",
                 },
                 "status": SolutionStatus.PUBLISHED,
+                "visibility": Visibility.PUBLIC,
             },
             {
                 "id": 2,
