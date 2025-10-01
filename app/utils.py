@@ -58,4 +58,5 @@ def serialize_solution(solution: Solution) -> dict:
             if solution.creator
             else None
         ),
+        "approved_by": solution.approved_by,
     }

@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, g
 from app.public.logic import (
     get_all_published_solutions,
     get_published_solution_by_name,
-    get_solution_by_hash,
+    get_published_solution_by_hash,
     search_published_solutions,
 )
 from app.public.auth import login_required, verify_signature
@@ -76,7 +76,7 @@ def search_solutions():
 
 @public_bp.route("/solutions/preview/<string:uuid>", methods=["GET"])
 def get_solution_preview(uuid):
-    solution = get_solution_by_hash(uuid)
+    solution = get_published_solution_by_hash(uuid)
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
     return jsonify(solution), 200
