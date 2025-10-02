@@ -6,7 +6,7 @@ from functools import wraps
 from flask import request, abort, g
 import jwt
 
-HMAC_SECRET_KEY = os.environ.get("HMAC_SECRET_KEY")
+HMAC_SECRET_KEY = os.environ.get("FLASK_HMAC_SECRET_KEY")
 SECRET_KEY = os.environ.get("FLASK_SECRET_KEY")
 
 
