@@ -107,7 +107,7 @@ def validate_solution_title(title: str) -> bool:
     if not title:
         return False
 
-    if not re.match(r"^[\w\s]+$", title):
+    if not re.match(r"^[\w\s']+$", title):
         return False
 
     return True
@@ -142,7 +142,8 @@ def register_solution_package(
                     "code": "invalid-title",
                     "message": "Title format is invalid. "
                     "Must contain only word characters "
-                    "(letters, numbers, underscores) and spaces.",
+                    "(letters, numbers, underscores), spaces, "
+                    "and apostrophes.",
                 }
             ]
         )
