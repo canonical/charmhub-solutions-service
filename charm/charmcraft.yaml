@@ -1,0 +1,38 @@
+name: charmhub-solutions
+
+type: charm
+
+bases:
+  - build-on:
+    - name: ubuntu
+      channel: "22.04"
+    run-on:
+    - name: ubuntu
+      channel: "22.04"
+
+# (Required)
+summary: Charmhub solutions service paas-charm
+
+# (Required)
+description: |
+  The charm for the charmhub solutions service, built with the PaaS-charm.
+
+extensions:
+  - flask-framework
+
+requires:
+  postgresql:
+    interface: postgresql_client
+    optional: false
+
+config:
+  options:
+    openid-launchpad-team:
+      description: The team that is allowed to access the review dashboard.
+      required: true
+      type: string
+    hmac-secret:
+      description: The secret containing the HMAC-key
+      type: secret
+      required: true
+
