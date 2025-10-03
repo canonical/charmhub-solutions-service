@@ -5,6 +5,11 @@ import os
 from functools import wraps
 from flask import request, abort, g
 import jwt
+import logging
+
+from app.public.launchpad import get_user_teams
+
+logger = logging.getLogger(__name__)
 
 HMAC_SECRET_KEY = os.environ.get("FLASK_HMAC_SECRET_KEY")
 SECRET_KEY = os.environ.get("FLASK_SECRET_KEY")
@@ -14,6 +19,7 @@ TOKEN_EXPIRATION = 300  # 5 minutes
 
 
 def verify_signature(username, timestamp, signature):
+    """Verify the HMAC signature and timestamp."""
     try:
         message = f"{username}|{timestamp}".encode()
         expected = hmac.new(
@@ -27,7 +33,8 @@ def verify_signature(username, timestamp, signature):
             return False
 
         return True
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error verifying signature: {e}")
         return False
 
 
@@ -50,10 +57,11 @@ def login_required(f):
 
         token = auth_header.split(" ")[1]
         payload = decode_jwt_token(token)
+        teams = get_user_teams(payload["sub"])
 
         g.user = {
             "username": payload["sub"],
-            "teams": payload.get("teams", []),
+            "teams": teams,
         }
 
         return f(*args, **kwargs)

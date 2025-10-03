@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - staging
+      - working-staging # TODO: remove later
   workflow_dispatch:
     inputs:
       environment:
