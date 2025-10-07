@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - staging
-      - working-staging # TODO: remove later
   workflow_dispatch:
     inputs:
       environment:
@@ -21,6 +20,7 @@ jobs:
     environment: ${{ github.event.inputs.environment != '' && github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'Production' || 'Staging') }}
     outputs:
       charm_name: ${{ steps.setup-vars.outputs.charm_name }}
+      app_name: ${{ steps.setup-vars.outputs.app_name }}
       channel: ${{ steps.setup-vars.outputs.channel }}
       juju_controller_name: ${{ steps.setup-vars.outputs.juju_controller_name }}
       juju_model_name: ${{ steps.setup-vars.outputs.juju_model_name }}
@@ -30,17 +30,18 @@ jobs:
         id: setup-vars
         run: |
           echo "charm_name=${{ vars.CHARM_NAME }}" >> $GITHUB_OUTPUT
+          echo "app_name=${{ vars.APP_NAME }}" >> $GITHUB_OUTPUT
           echo "channel=${{ vars.CHANNEL }}" >> $GITHUB_OUTPUT
           echo "juju_controller_name=${{ vars.JUJU_CONTROLLER_NAME }}" >> $GITHUB_OUTPUT
           echo "juju_model_name=${{ vars.JUJU_MODEL_NAME }}" >> $GITHUB_OUTPUT
           echo "environment=${{ github.event.inputs.environment != '' && github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'Production' || 'Staging') }}" >> $GITHUB_OUTPUT
-
   deploy:
     needs: setup
     name: Deploy
-    uses: canonical/webteam-devops/.github/workflows/deploy.yaml@main
+    uses: canonical/webteam-devops/.github/workflows/deploy.yaml@custom-app-name
     with:
       charm_name: ${{ needs.setup.outputs.charm_name }}
+      app_name: ${{ needs.setup.outputs.app_name }}
       channel: ${{ needs.setup.outputs.channel }}
       juju_controller_name: ${{ needs.setup.outputs.juju_controller_name }}
       juju_model_name: ${{ needs.setup.outputs.juju_model_name }}
