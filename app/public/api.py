@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, g
+from app.models import Publisher
 from app.public.logic import (
     get_all_published_solutions,
     get_published_solution_by_name,
@@ -30,15 +31,8 @@ def login():
     if not verify_signature(username, timestamp, signature):
         return jsonify({"error": "Invalid or expired signature"}), 403
 
-    # Fetch user teams from Launchpad
-    try:
-        teams = get_user_teams(username)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
     payload = {
         "sub": username,
-        "teams": teams,
         "iat": int(time.time()),
         "exp": int(time.time()) + JWT_EXPIRATION,
     }
@@ -50,6 +44,9 @@ def login():
 @public_bp.route("/me", methods=["GET"])
 @login_required
 def get_current_user():
+    teams = g.user.get("teams", [])
+    publishers = Publisher.query.filter(Publisher.username.in_(teams)).all()
+    g.user["is_publisher"] = len(publishers) > 0
     return jsonify({"user": g.user}), 200
 
 
