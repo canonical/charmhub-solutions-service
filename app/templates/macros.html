@@ -4,6 +4,8 @@
     <thead>
         <tr>
           <th>Solution name</th>
+          <th style="width: 8%">Revision</th>
+          <th style="width: 12%">Last Updated</th>
           <th>Publisher</th>
           <th>Creator</th>
           <th>Actions</th>
@@ -14,6 +16,8 @@
         {% for solution in solutions %}
         <tr>
             <td><a href="https://staging.charmhub.io/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a></td>
+            <td>{{ solution.revision if solution.revision else '-' }}</td>
+            <td>{{ solution.last_updated.strftime('%-d %B %Y') if solution.last_updated else '-' }}</td>
             <td><a href="https://staging.charmhub.io/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
             <td>
               {% if solution.creator_mattermost %}
