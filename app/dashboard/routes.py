@@ -45,12 +45,14 @@ def dashboard():
         solution_data = {
             "name": solution.name,
             "title": solution.title,
+            "revision": solution.revision,
             "status": solution.status.value,
             "publisher_username": solution.publisher.username,
             "publisher_display_name": solution.publisher.display_name,
             "creator_mattermost": solution.creator.mattermost_handle,
             "creator_matrix": solution.creator.matrix_handle,
             "hash": solution.hash,
+            "last_updated": solution.last_updated,
         }
         if solution.status == SolutionStatus.PUBLISHED:
             published_solutions.append(solution_data)
