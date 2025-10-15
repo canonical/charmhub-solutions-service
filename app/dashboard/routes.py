@@ -50,7 +50,6 @@ def dashboard():
             "publisher_username": solution.publisher.username,
             "publisher_display_name": solution.publisher.display_name,
             "creator_mattermost": solution.creator.mattermost_handle,
-            "creator_matrix": solution.creator.matrix_handle,
             "hash": solution.hash,
             "last_updated": solution.last_updated,
         }

@@ -53,7 +53,6 @@ def serialize_solution(solution: Solution) -> dict:
             {
                 "email": solution.creator.email,
                 "mattermost_handle": solution.creator.mattermost_handle,
-                "matrix_handle": solution.creator.matrix_handle,
             }
             if solution.creator
             else None

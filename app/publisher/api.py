@@ -56,7 +56,6 @@ def register_solution():
         creator = find_or_create_creator(
             data["creator_email"],
             data.get("mattermost_handle"),
-            data.get("matrix_handle"),
         )
 
         solution = register_solution_package(
@@ -122,7 +121,6 @@ def create_solution_revision(name):
     creator = find_or_create_creator(
         data["creator_email"],
         data.get("mattermost_handle"),
-        data.get("matrix_handle"),
     )
 
     solution = create_new_solution_revision(

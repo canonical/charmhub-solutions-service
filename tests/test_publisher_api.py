@@ -82,7 +82,6 @@ def test_register_solution(
             "summary": "Test summary",
             "creator_email": "test@example.com",
             "mattermost_handle": "@testuser",
-            "matrix_handle": "@testuser:matrix.org",
         },
         headers={"Authorization": "Bearer fake token"},
     )
@@ -93,7 +92,6 @@ def test_register_solution(
     mock_find_or_create_creator.assert_called_once_with(
         "test@example.com",
         "@testuser",
-        "@testuser:matrix.org",
     )
     mock_register_solution_package.assert_called_once_with(
         teams=["team1", "team2"],
@@ -310,7 +308,6 @@ def test_complete_solution_creation_flow(
 
     mock_find_or_create_creator.assert_called_once_with(
         "test@example.com",
-        None,
         None,
     )
     mock_register_solution_package.assert_called_once_with(
