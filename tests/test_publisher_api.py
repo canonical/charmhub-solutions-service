@@ -27,15 +27,16 @@ def client(app):
     return app.test_client()
 
 
+@patch("app.public.auth.get_user_teams")
 @patch("app.public.auth.decode_jwt_token")
 @patch("app.publisher.api.get_solutions_by_lp_teams")
 def test_get_publisher_solutions(
-    mock_get_solutions_by_lp_teams, mock_decode_jwt_token, client
+    mock_get_solutions_by_lp_teams, mock_decode_jwt_token, mock_get_user_teams, client
 ):
     mock_decode_jwt_token.return_value = {
         "sub": "testuser",
-        "teams": ["team1", "team2"],
     }
+    mock_get_user_teams.return_value = ["team1", "team2"]
 
     mock_get_solutions_by_lp_teams.return_value = [
         {"name": "solution1", "publisher": "team1"},
@@ -54,16 +55,17 @@ def test_get_publisher_solutions(
     mock_get_solutions_by_lp_teams.assert_called_once_with(["team1", "team2"])
 
 
+@patch("app.public.auth.get_user_teams")
 @patch("app.public.auth.decode_jwt_token")
 @patch("app.publisher.api.find_or_create_creator")
 @patch("app.publisher.api.register_solution_package")
 def test_register_solution(
-    mock_register_solution_package, mock_find_or_create_creator, mock_decode_jwt_token, client
+    mock_register_solution_package, mock_find_or_create_creator, mock_decode_jwt_token, mock_get_user_teams, client
 ):
     mock_decode_jwt_token.return_value = {
         "sub": "testuser",
-        "teams": ["team1", "team2"],
     }
+    mock_get_user_teams.return_value = ["team1", "team2"]
 
     mock_creator = Mock(id=1)
     mock_find_or_create_creator.return_value = mock_creator
@@ -104,16 +106,17 @@ def test_register_solution(
     )
 
 
+@patch("app.public.auth.get_user_teams")
 @patch("app.public.auth.decode_jwt_token")
 @patch("app.publisher.api.find_or_create_creator")
 @patch("app.publisher.api.register_solution_package")
 def test_register_solution_duplicate_name(
-    mock_register_solution_package, mock_find_or_create_creator, mock_decode_jwt_token, client
+    mock_register_solution_package, mock_find_or_create_creator, mock_decode_jwt_token, mock_get_user_teams, client
 ):
     mock_decode_jwt_token.return_value = {
         "sub": "testuser",
-        "teams": ["team1"],
     }
+    mock_get_user_teams.return_value = ["team1"]
 
     mock_creator = Mock(id=1)
     mock_find_or_create_creator.return_value = mock_creator
@@ -144,6 +147,7 @@ def test_register_solution_duplicate_name(
     assert data["error-list"][0]["code"] == "already-registered"
 
 
+@patch("app.public.auth.get_user_teams")
 @patch("app.public.auth.decode_jwt_token")
 @patch("app.publisher.api.update_solution_metadata")
 @patch("app.publisher.api.get_solution_by_name_and_rev")
@@ -151,12 +155,13 @@ def test_update_solution_revision_1(
     mock_get_solution_by_name_and_rev,
     mock_update_solution_metadata,
     mock_decode_jwt_token,
+    mock_get_user_teams,
     client,
 ):
     mock_decode_jwt_token.return_value = {
         "sub": "testuser",
-        "teams": ["team1"],
     }
+    mock_get_user_teams.return_value = ["team1"]
 
     mock_get_solution_by_name_and_rev.return_value = {
         "name": "test-solution",
@@ -187,6 +192,7 @@ def test_update_solution_revision_1(
     )
 
 
+@patch("app.public.auth.get_user_teams")
 @patch("app.public.auth.decode_jwt_token")
 @patch("app.publisher.api.update_solution_metadata")
 @patch("app.publisher.api.get_solution_by_name_and_rev")
@@ -194,12 +200,13 @@ def test_update_solution_revision_greater_than_1(
     mock_get_solution_by_name_and_rev,
     mock_update_solution_metadata,
     mock_decode_jwt_token,
+    mock_get_user_teams,
     client,
 ):
     mock_decode_jwt_token.return_value = {
         "sub": "testuser",
-        "teams": ["team1"],
     }
+    mock_get_user_teams.return_value = ["team1"]
 
     mock_get_solution_by_name_and_rev.return_value = {
         "name": "test-solution",
@@ -225,6 +232,7 @@ def test_update_solution_revision_greater_than_1(
     assert data["status"] == "published"
 
 
+@patch("app.public.auth.get_user_teams")
 @patch("app.public.auth.decode_jwt_token")
 @patch("app.publisher.api.find_or_create_creator")
 @patch("app.publisher.api.register_solution_package")
@@ -238,13 +246,14 @@ def test_complete_solution_creation_flow(
     mock_register_solution_package,
     mock_find_or_create_creator,
     mock_decode_jwt_token,
+    mock_get_user_teams,
     client,
 ):
     """Test the complete solution creation workflow from registration to publication."""
     mock_decode_jwt_token.return_value = {
         "sub": "testuser",
-        "teams": ["team1"],
     }
+    mock_get_user_teams.return_value = ["team1"]
 
     mock_creator = Mock(id=1)
     mock_find_or_create_creator.return_value = mock_creator
