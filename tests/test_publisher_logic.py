@@ -30,13 +30,12 @@ class TestFindOrCreateCreator:
         mock_creator_class.return_value = new_creator
 
         result = find_or_create_creator(
-            "new@example.com", "mattermost_handle", "matrix_handle"
+            "new@example.com", "mattermost_handle"
         )
 
         mock_creator_class.assert_called_once_with(
             email="new@example.com",
             mattermost_handle="mattermost_handle",
-            matrix_handle="matrix_handle",
         )
         mock_session.add.assert_called_once_with(new_creator)
         mock_session.flush.assert_called_once()
@@ -47,15 +46,13 @@ class TestFindOrCreateCreator:
         existing_creator = Mock(spec=Creator)
         existing_creator.email = "test@example.com"
         existing_creator.mattermost_handle = None
-        existing_creator.matrix_handle = None
         mock_session.query().filter().first.return_value = existing_creator
 
         result = find_or_create_creator(
-            "test@example.com", "new_mattermost", "new_matrix"
+            "test@example.com", "new_mattermost"
         )
 
         assert existing_creator.mattermost_handle == "new_mattermost"
-        assert existing_creator.matrix_handle == "new_matrix"
         assert result == existing_creator
 
 

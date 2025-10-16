@@ -45,7 +45,6 @@ EDITABLE_FIELDS = {
 def find_or_create_creator(
     creator_email: str,
     mattermost_handle: str = None,
-    matrix_handle: str = None,
 ):
     creator = (
         db.session.query(Creator).filter(Creator.email == creator_email).first()
@@ -54,15 +53,12 @@ def find_or_create_creator(
         creator = Creator(
             email=creator_email,
             mattermost_handle=mattermost_handle,
-            matrix_handle=matrix_handle,
         )
         db.session.add(creator)
         db.session.flush()
     else:
         if mattermost_handle:
             creator.mattermost_handle = mattermost_handle
-        if matrix_handle:
-            creator.matrix_handle = matrix_handle
 
     return creator
 
@@ -408,9 +404,9 @@ def copy_maintainers_to_solution(
 
 
 def update_solution_creator(
-    solution, creator_email=None, mattermost_handle=None, matrix_handle=None
+    solution, creator_email=None, mattermost_handle=None
 ):
-    if not any([creator_email, mattermost_handle, matrix_handle]):
+    if not any([creator_email, mattermost_handle]):
         return
 
     current_creator = solution.creator
@@ -418,22 +414,18 @@ def update_solution_creator(
     if creator_email and creator_email.strip():
         if creator_email.strip() != current_creator.email:
             solution.creator = find_or_create_creator(
-                creator_email.strip(), mattermost_handle, matrix_handle
+                creator_email.strip(), mattermost_handle
             )
         else:
             if mattermost_handle is not None:
                 current_creator.mattermost_handle = (
                     mattermost_handle.strip() or None
                 )
-            if matrix_handle is not None:
-                current_creator.matrix_handle = matrix_handle.strip() or None
     else:
         if mattermost_handle is not None:
             current_creator.mattermost_handle = (
                 mattermost_handle.strip() or None
             )
-        if matrix_handle is not None:
-            current_creator.matrix_handle = matrix_handle.strip() or None
 
 
 def create_solution_revision(original_solution, metadata):
@@ -479,7 +471,6 @@ def update_published_solution(solution, metadata):
         new_solution,
         metadata.get("creator_email"),
         metadata.get("mattermost_handle"),
-        metadata.get("matrix_handle"),
     )
 
     db.session.flush()
@@ -494,7 +485,6 @@ def update_draft_solution(solution, metadata):
     maintainers_data = metadata.pop("maintainers", None)
     creator_email = metadata.pop("creator_email", None)
     mattermost_handle = metadata.pop("mattermost_handle", None)
-    matrix_handle = metadata.pop("matrix_handle", None)
 
     for field, value in metadata.items():
         if field in EDITABLE_FIELDS:
@@ -523,7 +513,7 @@ def update_draft_solution(solution, metadata):
         copy_maintainers_to_solution(None, solution, maintainers_data)
 
     update_solution_creator(
-        solution, creator_email, mattermost_handle, matrix_handle
+        solution, creator_email, mattermost_handle
     )
 
     if solution.revision == 1:

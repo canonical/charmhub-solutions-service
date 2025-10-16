@@ -119,7 +119,7 @@ class Solution(db.Model):
     The specific creator of the solution revision.
     Used for communication purposes during the review process.
     This will not be shown publicly,
-    but we will show the MM / Matrix handle on the reviewer dashboard.
+    but we will show the Mattermost handle on the reviewer dashboard.
     """
     creator_id: Mapped[int] = mapped_column(
         ForeignKey("creator.id"), nullable=False
@@ -158,7 +158,6 @@ class Creator(db.Model):
     mattermost_handle: Mapped[Optional[str]] = mapped_column(
         String, nullable=True
     )
-    matrix_handle: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     solutions: Mapped[List["Solution"]] = relationship(
         back_populates="creator"
