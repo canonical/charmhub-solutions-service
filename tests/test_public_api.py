@@ -93,3 +93,27 @@ def test_search_solutions_no_results(mock_search_published_solutions, client):
     mock_search_published_solutions.assert_called_once_with(
         "non_existent_query"
     )
+
+
+@patch("app.public.api.Solution")
+def test_check_solution_name_exists(mock_solution, client):
+    mock_solution.query.filter_by.return_value.first.return_value = {
+        "name": "existing-solution"
+    }
+    response = client.get("/api/solutions/check-name/existing-solution")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["exists"] is True
+    mock_solution.query.filter_by.assert_called_once_with(
+        name="existing-solution"
+    )
+
+
+@patch("app.public.api.Solution")
+def test_check_solution_name_does_not_exist(mock_solution, client):
+    mock_solution.query.filter_by.return_value.first.return_value = None
+    response = client.get("/api/solutions/check-name/new-solution")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["exists"] is False
+    mock_solution.query.filter_by.assert_called_once_with(name="new-solution")
