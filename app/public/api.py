@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, g
-from app.models import Publisher
+from app.models import Publisher, Solution
 from app.public.logic import (
     get_all_published_solutions,
     get_published_solution_by_name,
@@ -77,3 +77,9 @@ def get_solution_preview(uuid):
     if not solution:
         return jsonify({"error": "Solution not found"}), 404
     return jsonify(solution), 200
+
+
+@public_bp.route("/solutions/check-name/<string:name>", methods=["GET"])
+def check_solution_name(name):
+    solution = Solution.query.filter_by(name=name).first()
+    return jsonify({"exists": solution is not None}), 200
