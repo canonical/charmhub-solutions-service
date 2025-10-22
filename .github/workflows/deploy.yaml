@@ -31,6 +31,7 @@ jobs:
         id: setup-vars
         run: |
           echo "charm_name=${{ vars.CHARM_NAME }}" >> $GITHUB_OUTPUT
+          echo "app_name=${{ vars.APP_NAME }}" >> $GITHUB_OUTPUT
           echo "channel=${{ vars.CHANNEL }}" >> $GITHUB_OUTPUT
           echo "juju_controller_name=${{ vars.JUJU_CONTROLLER_NAME }}" >> $GITHUB_OUTPUT
           echo "juju_model_name=${{ vars.JUJU_MODEL_NAME }}" >> $GITHUB_OUTPUT
@@ -62,9 +63,10 @@ jobs:
     name: Deploy to Staging
     # Deploy to staging when: pushing to staging branch, pushing to main, or manual dispatch with Staging selected
     if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.event.inputs.environment == 'Staging'
-    uses: canonical/webteam-devops/.github/workflows/deploy.yaml@main
+    uses: canonical/webteam-devops/.github/workflows/deploy.yaml@custom-app-name
     with:
       charm_name: ${{ needs.setup-staging.outputs.charm_name }}
+      app_name: ${{ needs.setup-staging.outputs.app_name }}
       channel: ${{ needs.setup-staging.outputs.channel }}
       juju_controller_name: ${{ needs.setup-staging.outputs.juju_controller_name }}
       juju_model_name: ${{ needs.setup-staging.outputs.juju_model_name }}
