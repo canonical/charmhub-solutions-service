@@ -22,6 +22,7 @@ jobs:
     environment: Staging
     outputs:
       charm_name: ${{ steps.setup-vars.outputs.charm_name }}
+      app_name: ${{ steps.setup-vars.outputs.app_name }}
       channel: ${{ steps.setup-vars.outputs.channel }}
       juju_controller_name: ${{ steps.setup-vars.outputs.juju_controller_name }}
       juju_model_name: ${{ steps.setup-vars.outputs.juju_model_name }}
