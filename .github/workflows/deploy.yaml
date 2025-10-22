@@ -19,7 +19,6 @@ jobs:
     name: Deploy to Staging
     # Deploy to staging when: pushing to staging branch, pushing to main, or manual dispatch with Staging selected
     if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.event.inputs.environment == 'Staging'
-    environment: Staging
     uses: canonical/webteam-devops/.github/workflows/deploy.yaml@main
     with:
       charm_name: ${{ vars.CHARM_NAME }}
@@ -36,7 +35,6 @@ jobs:
     name: Deploy to Production
     # Deploy to production only when: pushing to main or manual dispatch with Production selected
     if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'Production'
-    environment: Production
     uses: canonical/webteam-devops/.github/workflows/deploy.yaml@main
     with:
       charm_name: ${{ vars.CHARM_NAME }}
