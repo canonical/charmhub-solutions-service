@@ -15,35 +15,80 @@ on:
           - Production
           - Staging
 jobs:
+  setup-staging:
+    runs-on: ubuntu-latest
+    # Setup for staging when: pushing to staging branch, pushing to main, or manual dispatch with Staging selected
+    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.event.inputs.environment == 'Staging'
+    environment: Staging
+    outputs:
+      charm_name: ${{ steps.setup-vars.outputs.charm_name }}
+      app_name: ${{ steps.setup-vars.outputs.app_name }}
+      channel: ${{ steps.setup-vars.outputs.channel }}
+      juju_controller_name: ${{ steps.setup-vars.outputs.juju_controller_name }}
+      juju_model_name: ${{ steps.setup-vars.outputs.juju_model_name }}
+      environment: ${{ steps.setup-vars.outputs.environment }}
+    steps:
+      - name: setup vars
+        id: setup-vars
+        run: |
+          echo "charm_name=${{ vars.CHARM_NAME }}" >> $GITHUB_OUTPUT
+          echo "app_name=${{ vars.APP_NAME }}" >> $GITHUB_OUTPUT
+          echo "channel=${{ vars.CHANNEL }}" >> $GITHUB_OUTPUT
+          echo "juju_controller_name=${{ vars.JUJU_CONTROLLER_NAME }}" >> $GITHUB_OUTPUT
+          echo "juju_model_name=${{ vars.JUJU_MODEL_NAME }}" >> $GITHUB_OUTPUT
+          echo "environment=Staging" >> $GITHUB_OUTPUT
+
+  setup-production:
+    runs-on: ubuntu-latest
+    # Setup for production only when: pushing to main or manual dispatch with Production selected
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'Production'
+    environment: Production
+    outputs:
+      charm_name: ${{ steps.setup-vars.outputs.charm_name }}
+      channel: ${{ steps.setup-vars.outputs.channel }}
+      juju_controller_name: ${{ steps.setup-vars.outputs.juju_controller_name }}
+      juju_model_name: ${{ steps.setup-vars.outputs.juju_model_name }}
+      environment: ${{ steps.setup-vars.outputs.environment }}
+    steps:
+      - name: setup vars
+        id: setup-vars
+        run: |
+          echo "charm_name=${{ vars.CHARM_NAME }}" >> $GITHUB_OUTPUT
+          echo "channel=${{ vars.CHANNEL }}" >> $GITHUB_OUTPUT
+          echo "juju_controller_name=${{ vars.JUJU_CONTROLLER_NAME }}" >> $GITHUB_OUTPUT
+          echo "juju_model_name=${{ vars.JUJU_MODEL_NAME }}" >> $GITHUB_OUTPUT
+          echo "environment=Production" >> $GITHUB_OUTPUT
+
   deploy-staging:
+    needs: setup-staging
     name: Deploy to Staging
     # Deploy to staging when: pushing to staging branch, pushing to main, or manual dispatch with Staging selected
     if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.event.inputs.environment == 'Staging'
-    environment: Staging
-    uses: canonical/webteam-devops/.github/workflows/deploy.yaml@main
+    uses: canonical/webteam-devops/.github/workflows/deploy.yaml@custom-app-name
     with:
-      charm_name: ${{ vars.CHARM_NAME }}
-      channel: ${{ vars.CHANNEL }}
-      juju_controller_name: ${{ vars.JUJU_CONTROLLER_NAME }}
-      juju_model_name: ${{ vars.JUJU_MODEL_NAME }}
-      environment: "Staging"
+      charm_name: ${{ needs.setup-staging.outputs.charm_name }}
+      app_name: ${{ needs.setup-staging.outputs.app_name }}
+      channel: ${{ needs.setup-staging.outputs.channel }}
+      juju_controller_name: ${{ needs.setup-staging.outputs.juju_controller_name }}
+      juju_model_name: ${{ needs.setup-staging.outputs.juju_model_name }}
+      environment: ${{ needs.setup-staging.outputs.environment }}
     secrets:
       VAULT_APPROLE_ROLE_ID: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       VAULT_APPROLE_SECRET_ID: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
       CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
 
   deploy-production:
+    needs: setup-production
     name: Deploy to Production
     # Deploy to production only when: pushing to main or manual dispatch with Production selected
     if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'Production'
-    environment: Production
     uses: canonical/webteam-devops/.github/workflows/deploy.yaml@main
     with:
-      charm_name: ${{ vars.CHARM_NAME }}
-      channel: ${{ vars.CHANNEL }}
-      juju_controller_name: ${{ vars.JUJU_CONTROLLER_NAME }}
-      juju_model_name: ${{ vars.JUJU_MODEL_NAME }}
-      environment: "Production"
+      charm_name: ${{ needs.setup-production.outputs.charm_name }}
+      channel: ${{ needs.setup-production.outputs.channel }}
+      juju_controller_name: ${{ needs.setup-production.outputs.juju_controller_name }}
+      juju_model_name: ${{ needs.setup-production.outputs.juju_model_name }}
+      environment: ${{ needs.setup-production.outputs.environment }}
     secrets:
       VAULT_APPROLE_ROLE_ID: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       VAULT_APPROLE_SECRET_ID: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
