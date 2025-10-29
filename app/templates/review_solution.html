@@ -32,7 +32,7 @@
                 </div>
                 <div class="u-align--right">
                     <a href="{{ url_for("dashboard.dashboard") }}" class="p-button--base">Back to Dashboard</a>
-                    <a href="http://localhost:8045/solutions/preview/{{ solution.hash }}"
+                    <a href="{{ charmhub_url }}/solutions/preview/{{ solution.hash }}"
                        target="_blank"
                        class="p-button--base">Preview on Charmhub</a>
                     {% if solution.status.value == 'pending_name_review' %}

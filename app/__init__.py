@@ -14,6 +14,12 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    @app.context_processor
+    def inject_config():
+        return {
+            'charmhub_url': app.config['CHARMHUB_URL']
+        }
+
     with app.app_context():
         app.register_blueprint(dashboard_bp, url_prefix="/")
         app.register_blueprint(public_bp, url_prefix="/api")

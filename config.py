@@ -16,3 +16,6 @@ class Config:
     OPENID_LAUNCHPAD_TEAM = os.getenv(
         "OPENID_LAUNCHPAD_TEAM", "charmhub-solution-reviewers"
     )
+    CHARMHUB_URL = os.getenv(
+        "CHARMHUB_URL", "http://localhost:8045"
+    )
