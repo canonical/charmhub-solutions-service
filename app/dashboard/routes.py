@@ -107,6 +107,29 @@ def dashboard():
     )
 
 
+@dashboard_bp.route("/<string:name>/review", methods=["GET"])
+@dashboard_login_required
+def review_solution(name):
+    solution = (
+        Solution.query.filter_by(name=name)
+        .order_by(Solution.revision.desc())
+        .first()
+    )
+
+    if not solution:
+        flash("Solution not found", "negative")
+        return redirect(url_for("dashboard.dashboard"))
+
+    if solution.status not in [
+        SolutionStatus.PENDING_NAME_REVIEW,
+        SolutionStatus.PENDING_METADATA_REVIEW,
+    ]:
+        flash("This solution is not pending review", "information")
+        return redirect(url_for("dashboard.dashboard"))
+
+    return render_template("review_solution.html", solution=solution)
+
+
 @dashboard_bp.route("/<string:name>/approve-name", methods=["GET"])
 @dashboard_login_required
 def approve_name(name):

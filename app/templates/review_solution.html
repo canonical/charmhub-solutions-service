@@ -1,0 +1,261 @@
+{% extends "layout.html" %}
+{% block title %}Review Solution - {{ solution.title }}{% endblock %}
+{% block meta_title %}Review Solution - {{ solution.title }}{% endblock %}
+{% block page_content %}
+    <div class="p-panel" id="top">
+        <div class="p-panel__header">
+            <h3 class="p-panel__title">Review Solution: {{ solution.title }}</h3>
+        </div>
+        <div class="p-panel__content">
+            <div class="u-fixed-width">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="p-notification--{{ category if category in ['positive', 'caution', 'negative', 'information'] else 'information' }}">
+                                <div class="p-notification__content">
+                                    <p class="p-notification__message">{{ message }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                <div class="p-notification--information">
+                    <div class="p-notification__content">
+                        <p class="p-notification__message">
+                            <strong>Status:</strong> {{ solution.status.value | replace('_', ' ') | title }}
+                            <br>
+                            <strong>Revision:</strong> {{ solution.revision }}
+                            <br>
+                            <strong>Last Updated:</strong> {{ solution.last_updated.strftime("%-d %B %Y at %H:%M") }}
+                        </p>
+                    </div>
+                </div>
+                <div class="u-align--right">
+                    <a href="{{ url_for("dashboard.dashboard") }}" class="p-button--base">Back to Dashboard</a>
+                    <a href="http://localhost:8045/solutions/preview/{{ solution.hash }}"
+                       target="_blank"
+                       class="p-button--base">Preview on Charmhub</a>
+                    {% if solution.status.value == 'pending_name_review' %}
+                        <a href="{{ url_for('dashboard.approve_name', name=solution.name) }}"
+                           class="p-button--positive action-button">Approve Name</a>
+                    {% elif solution.status.value == 'pending_metadata_review' %}
+                        <a href="{{ url_for('dashboard.approve_metadata', name=solution.name) }}"
+                           class="p-button--positive action-button">Approve & Publish</a>
+                    {% endif %}
+                </div>
+                <hr>
+                <section>
+                    <h4>Title & Publisher</h4>
+                    <p>
+                        <strong>Name:</strong>
+                        <code>{{ solution.name }}</code>
+                    </p>
+                    <p>
+                        <strong>Title:</strong>
+                        {{ solution.title }}
+                    </p>
+                    <p>
+                        <strong>Publisher:</strong>
+                        {{ solution.publisher.display_name }} (<code>{{ solution.publisher.username }}</code>)
+                    </p>
+                    {% if solution.icon %}
+                        <hr>
+                        <h4>Icon</h4>
+                        <img src="{{ solution.icon }}"
+                             alt="Solution icon"
+                             style="max-width: 64px;
+                                    max-height: 64px">
+                        <br>
+                        <a href="{{ solution.icon }}" target="_blank">{{ solution.icon }}</a>
+                    {% endif %}
+                    <hr>
+                    <h4>Platform Details</h4>
+                    <p>
+                        <strong>Platform:</strong> {{ solution.platform.value | capitalize }}
+                    </p>
+                    {% if solution.platform_version %}
+                        <p>
+                            <strong>Platform Versions:</strong> {{ solution.platform_version | join(", ") }}
+                        </p>
+                    {% endif %}
+                    {% if solution.platform_prerequisites %}
+                        <p>
+                            <strong>Platform Prerequisites:</strong> {{ solution.platform_prerequisites | join(", ") }}
+                        </p>
+                    {% endif %}
+                    {% if solution.juju_versions %}
+                        <p>
+                            <strong>Juju Versions:</strong> {{ solution.juju_versions | join(", ") }}
+                        </p>
+                    {% endif %}
+                    {% if solution.status.value != 'pending_name_review' %}
+                        <hr>
+                        <h4>Summary & Description</h4>
+                        {% if solution.summary %}
+                            <p>
+                                <strong>Summary:</strong> {{ solution.summary }}
+                            </p>
+                        {% endif %}
+                        {% if solution.description %}
+                            <p>
+                                <strong>Description:</strong> {{ solution.description }}
+                            </p>
+                        {% endif %}
+                        {% if not solution.summary and not solution.description %}<p>No summary or description specified</p>{% endif %}
+                        <hr>
+                        <h4>Documentation</h4>
+                        {% if solution.documentation_main %}
+                            <p>
+                                <strong>Main Documentation:</strong> <a href="{{ solution.documentation_main }}" target="_blank">{{ solution.documentation_main }}</a>
+                            </p>
+                        {% endif %}
+                        {% if solution.documentation_source %}
+                            <p>
+                                <strong>Source Repository:</strong> <a href="{{ solution.documentation_source }}" target="_blank">{{ solution.documentation_source }}</a>
+                            </p>
+                        {% endif %}
+                        {% if solution.get_started_url %}
+                            <p>
+                                <strong>Get Started:</strong> <a href="{{ solution.get_started_url }}" target="_blank">{{ solution.get_started_url }}</a>
+                            </p>
+                        {% endif %}
+                        {% if solution.how_to_operate_url %}
+                            <p>
+                                <strong>How to Operate:</strong> <a href="{{ solution.how_to_operate_url }}" target="_blank">{{ solution.how_to_operate_url }}</a>
+                            </p>
+                        {% endif %}
+                        {% if not solution.documentation_main and not solution.documentation_source and not solution.get_started_url and not solution.how_to_operate_url %}
+                            <p>No documentation specified</p>
+                        {% endif %}
+                        <hr>
+                        <h4>Charms</h4>
+                        {% if solution.charms %}
+                            <ul>
+                                {% for charm in solution.charms %}
+                                    <li>
+                                        <a href="https://charmhub.io/{{ charm.charm_name }}" target="_blank">{{ charm.charm_name }}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No charms specified</p>
+                        {% endif %}
+                        <hr>
+                        <h4>Maintainers</h4>
+                        {% if solution.maintainers and solution.maintainers|length > 0 %}
+                            <table aria-label="maintainers table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for maintainer in solution.maintainers %}
+                                        <tr>
+                                            <td>{{ maintainer.display_name }}</td>
+                                            <td>
+                                                <a href="mailto:{{ maintainer.email }}">{{ maintainer.email }}</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p>No maintainers specified</p>
+                        {% endif %}
+                        <hr>
+                        <h4>Use Cases</h4>
+                        {% if solution.use_cases %}
+                            <table aria-label="use cases table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for use_case in solution.use_cases %}
+                                        <tr>
+                                            <td>{{ use_case.title }}</td>
+                                            <td>{{ use_case.description }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p>No use cases specified</p>
+                        {% endif %}
+                        <hr>
+                        <h4>Architecture</h4>
+                        {% if solution.architecture_diagram_url %}
+                            <p>
+                                <strong>Architecture Diagram:</strong> <a href="{{ solution.architecture_diagram_url }}" target="_blank">{{ solution.architecture_diagram_url }}</a>
+                            </p>
+                        {% endif %}
+                        {% if solution.architecture_explanation %}
+                            <p>
+                                <strong>Architecture Explanation:</strong> {{ solution.architecture_explanation }}
+                            </p>
+                        {% endif %}
+                        {% if not solution.architecture_diagram_url and not solution.architecture_explanation %}
+                            <p>No architecture information specified</p>
+                        {% endif %}
+                        <hr>
+                        <h4>Community</h4>
+                        {% if solution.submit_bug_url %}
+                            <p>
+                                <strong>Submit a Bug:</strong> <a href="{{ solution.submit_bug_url }}" target="_blank">{{ solution.submit_bug_url }}</a>
+                            </p>
+                        {% endif %}
+                        {% if solution.community_discussion_url %}
+                            <p>
+                                <strong>Join Discussion:</strong> <a href="{{ solution.community_discussion_url }}" target="_blank">{{ solution.community_discussion_url }}</a>
+                            </p>
+                        {% endif %}
+                        {% if not solution.submit_bug_url and not solution.community_discussion_url %}
+                            <p>No community links specified</p>
+                        {% endif %}
+                        <hr>
+                        <h4>Useful Links</h4>
+                        {% if solution.useful_links %}
+                            <table aria-label="useful links table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>URL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for link in solution.useful_links %}
+                                        <tr>
+                                            <td>{{ link.title }}</td>
+                                            <td>
+                                                <a href="{{ link.url }}" target="_blank">{{ link.url }}</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p>No useful links specified</p>
+                        {% endif %}
+                    {% endif %}
+                    <hr>
+                    <h4>Creator Contact</h4>
+                    <p>
+                        <strong>Email:</strong> <a href="mailto:{{ solution.creator.email }}">{{ solution.creator.email }}</a>
+                    </p>
+                    {% if solution.creator.mattermost_handle %}
+                        <p>
+                            <strong>Mattermost:</strong> <code>{{ solution.creator.mattermost_handle }}</code>
+                        </p>
+                    {% endif %}
+                </section>
+                <div class="p-top">
+                    <a href="#top" class="p-top__link">Back to top</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

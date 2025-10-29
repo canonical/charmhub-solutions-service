@@ -32,16 +32,14 @@
             </td>
             <td>
               <a
-                href="http://staging.charmhub.io/solutions/{{ solution.name }}?preview={{ solution.hash }}"
+                href="http://localhost:8045/solutions/preview/{{ solution.hash }}"
                 target="_blank"
                 class="p-button--base is-dense"
               >
                 Preview
               </a>
-              {% if solution.status == 'pending_name_review' %}
-              <a href="{{ url_for('dashboard.approve_name', name=solution.name) }}" class="p-button--base is-dense action-button">Approve Name</a>
-              {% elif solution.status == 'pending_metadata_review' %}
-              <a href="{{ url_for('dashboard.approve_metadata', name=solution.name) }}" class="p-button--base is-dense action-button">Approve & Publish</a>
+              {% if solution.status == 'pending_name_review' or solution.status == 'pending_metadata_review' %}
+              <a href="{{ url_for('dashboard.review_solution', name=solution.name) }}" class="p-button--base is-dense">Review</a>
               {% endif %}
             </td>
         </tr>
