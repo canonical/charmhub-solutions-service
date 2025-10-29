@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+{% block title %}Publishers{% endblock %}
+{% block meta_title %}Publishers{% endblock %}
+{% block page_content %}
+    <div class="p-panel">
+        <div class="p-panel__header">
+            <h4 class="p-panel__title">Publishers</h4>
+        </div>
+        <div class="p-panel__content">
+            <div class="u-fixed-width">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="p-notification--{{ category if category in ['positive', 'caution', 'negative', 'information'] else 'information' }}">
+                                <div class="p-notification__content">
+                                    <p class="p-notification__message">{{ message }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <h5>Existing Publishers ({{ publishers | length }})</h5>
+                {% if publishers %}
+                    <table aria-label="existing publishers table">
+                        <thead>
+                            <tr>
+                                <th>Display Name</th>
+                                <th>Username</th>
+                                <th>Publisher ID</th>
+                                <th style="width: 10%">Solutions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for publisher in publishers %}
+                            <tr>
+                                <td>{{ publisher.display_name }}</td>
+                                <td>{{ publisher.username }}</td>
+                                <td><code>{{ publisher.publisher_id }}</code></td>
+                                <td>{{ publisher.solutions | length }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <caption>
+                        <div class="p-strip">
+                            <div class="row">
+                                <div class="u-align--right col-4 col-medium-2 col-small-1">
+                                    <img src="https://assets.ubuntu.com/v1/3234f995-Generic_chamhub_NoDocs.svg" alt="empty state">
+                                </div>
+                                <div class="u-align--left col-8 col-medium-4 col-small-3">
+                                    <p class="u-vertical-align--middle">No publishers</p>
+                                </div>
+                            </div>
+                        </div>
+                    </caption>
+                {% endif %}
+
+                <hr>
+
+                <h5>Add New Publisher</h5>
+                <p>
+                    Create an empty publisher record to enable solutions access to a Launchpad group.
+                </p>
+
+                <form method="POST" action="{{ url_for('dashboard.create_publisher') }}" class="p-form p-form--stacked" id="create-publisher-form" data-validation-url="{{ url_for('dashboard.validate_launchpad_team') }}">
+                    <label for="username" class="p-form__label is-required">Launchpad group username:</label>
+                    <div class="p-form-validation" id="validation-wrapper">
+                        <div class="p-form--inline">
+                            <div class="p-form__group">
+                                <input type="text" id="username" name="username" class="p-form-validation__input" placeholder="e.g., data-platform" required>
+                            </div>
+                            <button type="submit" id="submit-button" class="p-button--positive is-inline" disabled>Create publisher</button>
+                        </div>
+                        <p class="p-form-validation__message" id="validation-message"></p>
+                    </div>
+
+                    <div id="team-details" class="u-hide">
+                        <div class="p-notification--information">
+                            <div class="p-notification__content">
+                                <dl>
+                                    <dt><strong>Team Name:</strong></dt>
+                                    <dd id="team-name"></dd>
+                                    <dt><strong>Display Name:</strong></dt>
+                                    <dd id="team-display-name"></dd>
+                                    <dt><strong>Launchpad Link:</strong></dt>
+                                    <dd><a id="team-link" href="" target="_blank"></a></dd>
+                                    <dt><strong>Publisher ID:</strong></dt>
+                                    <dd><code id="publisher-id"></code></dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/create-publisher.js') }}"></script>
+{% endblock %}

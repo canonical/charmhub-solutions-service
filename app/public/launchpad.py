@@ -38,3 +38,29 @@ def get_user_teams(username):
 
     teams = response.json()["entries"]
     return [team["name"] for team in teams]
+
+
+def get_launchpad_team(team_name):
+    url = f"{LAUNCHPAD_URL}/~{team_name}"
+
+    try:
+        response = requests.get(url, timeout=10)
+
+        if response.status_code == 404:
+            return None
+
+        if response.status_code != 200:
+            raise Exception(
+                f"Failed to fetch team {team_name}: "
+                f"{response.status_code} {response.text}"
+            )
+
+        team_data = response.json()
+
+        return {
+            "name": team_data.get("name"),
+            "display_name": team_data.get("display_name"),
+            "web_link": team_data.get("web_link"),
+        }
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Failed to connect to Launchpad API: {str(e)}")
