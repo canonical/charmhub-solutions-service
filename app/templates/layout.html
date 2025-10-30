@@ -75,13 +75,15 @@
    <main class="l-main">
       {% with messages = get_flashed_messages(with_categories=true) %}
          {% if messages %}
-            {% for category, message in messages %}
-               <div class="p-notification--{{ category if category in ['positive', 'negative', 'caution'] else 'information' }}">
-                  <div class="p-notification__content">
-                     <p class="p-notification__message">{{ message }}</p>
+            <div class="u-fixed-width" style="margin-top: 2rem;">
+               {% for category, message in messages %}
+                  <div class="p-notification--{{ category if category in ['positive', 'negative', 'caution'] else 'information' }}">
+                     <div class="p-notification__content">
+                        <p class="p-notification__message">{{ message }}</p>
+                     </div>
                   </div>
-               </div>
-            {% endfor %}
+               {% endfor %}
+            </div>
          {% endif %}
       {% endwith %}
       {% block page_header %}{% endblock %}
