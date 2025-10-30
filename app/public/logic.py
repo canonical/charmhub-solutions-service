@@ -68,6 +68,13 @@ def get_published_solution_by_hash(hash: str):
     ):
         return serialize_solution(solution)
 
+    # allow previewing pending solutions (for review dashboard)
+    if solution.status in [
+        SolutionStatus.PENDING_NAME_REVIEW,
+        SolutionStatus.PENDING_METADATA_REVIEW,
+    ]:
+        return serialize_solution(solution)
+
     # if solution is unpublished, try to find the latest published revision
     if solution.status == SolutionStatus.UNPUBLISHED:
         latest_published = (

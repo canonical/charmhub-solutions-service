@@ -1,4 +1,4 @@
-{% macro solution_table(solutions, title) %}
+{% macro solution_table(solutions, title, charmhub_url) %}
   <h5>{{ title }} ({{ solutions | length }})</h5>
   <table aria-label="{{ title | lower }} solutions table">
     <thead>
@@ -19,12 +19,12 @@
               {% if solution.status == 'pending_name_review' %}
                 {{ solution.title }}
               {% else %}
-                <a href="https://staging.charmhub.io/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a>
+                <a href="{{ charmhub_url }}/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a>
               {% endif %}
             </td>
             <td>{{ solution.revision if solution.revision else '-' }}</td>
             <td>{{ solution.last_updated.strftime('%-d %B %Y') if solution.last_updated else '-' }}</td>
-            <td><a href="https://staging.charmhub.io/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
+            <td><a href="{{ charmhub_url }}/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
             <td>
               {% if solution.creator_mattermost %}
               <p>Mattermost: <code>{{ solution.creator_mattermost }}</code></p>
@@ -32,16 +32,14 @@
             </td>
             <td>
               <a
-                href="http://staging.charmhub.io/solutions/{{ solution.name }}?preview={{ solution.hash }}"
+                href="{{ charmhub_url }}/solutions/preview/{{ solution.hash }}"
                 target="_blank"
                 class="p-button--base is-dense"
               >
                 Preview
               </a>
-              {% if solution.status == 'pending_name_review' %}
-              <a href="{{ url_for('dashboard.approve_name', name=solution.name) }}" class="p-button--base is-dense action-button">Approve Name</a>
-              {% elif solution.status == 'pending_metadata_review' %}
-              <a href="{{ url_for('dashboard.approve_metadata', name=solution.name) }}" class="p-button--base is-dense action-button">Approve & Publish</a>
+              {% if solution.status == 'pending_name_review' or solution.status == 'pending_metadata_review' %}
+              <a href="{{ url_for('dashboard.review_solution', name=solution.name) }}" class="p-button--base is-dense">Review</a>
               {% endif %}
             </td>
         </tr>
