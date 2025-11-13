@@ -546,7 +546,11 @@ def update_solution_metadata(name: str, rev: int, metadata: dict):
     if not solution:
         return None
 
-    if solution.status not in [SolutionStatus.DRAFT, SolutionStatus.PUBLISHED]:
+    if solution.status not in [
+        SolutionStatus.DRAFT,
+        SolutionStatus.PUBLISHED,
+        SolutionStatus.PENDING_METADATA_REVIEW,
+    ]:
         raise ValidationError(
             [
                 {
