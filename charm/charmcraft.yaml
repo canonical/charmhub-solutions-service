@@ -27,6 +27,10 @@ requires:
 
 config:
   options:
+    charmhub-url:
+      description: The URL for charmhub.io, used for linking to solutions and their previews.
+      required: false
+      type: string
     openid-launchpad-team:
       description: The team that is allowed to access the review dashboard.
       required: true
