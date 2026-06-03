@@ -69,7 +69,7 @@ jobs:
     name: Deploy to Staging
     # Deploy to staging when: pushing to staging branch, pushing to main, or manual dispatch with Staging selected
     if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main' || github.event.inputs.environment == 'Staging'
-    uses: canonical/webteam-devops/.github/workflows/deploy.yaml@custom-app-name
+    uses: canonical/webteam-devops/.github/workflows/deploy.yaml@fix-juju-deploy-app-name
     with:
       charm_name: ${{ needs.setup-staging.outputs.charm_name }}
       app_name: ${{ needs.setup-staging.outputs.app_name }}
