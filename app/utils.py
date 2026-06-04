@@ -59,3 +59,10 @@ def serialize_solution(solution: Solution) -> dict:
         ),
         "approved_by": solution.approved_by,
     }
+
+
+def serialize_public_solution(solution: Solution) -> dict:
+    data = serialize_solution(solution)
+    data.pop("creator", None)
+    data.pop("approved_by", None)
+    return data
