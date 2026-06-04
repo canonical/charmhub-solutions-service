@@ -5,6 +5,7 @@
         <tr>
           <th>Solution title</th>
           <th style="width: 8%">Revision</th>
+          <th style="width: 8%">Visibility</th>
           <th style="width: 12%">Last Updated</th>
           <th>Publisher</th>
           <th>Creator</th>
@@ -23,11 +24,12 @@
               {% endif %}
             </td>
             <td>{{ solution.revision if solution.revision else '-' }}</td>
+            <td>{{ solution.visibility | replace('_', ' ') | title if solution.visibility else '-' }}</td>
             <td>{{ solution.last_updated.strftime('%-d %B %Y') if solution.last_updated else '-' }}</td>
             <td><a href="{{ charmhub_url }}/publisher/{{ solution.publisher_username }}" target="_blank">{{ solution.publisher_display_name }}</a></td>
             <td>
               {% if solution.creator_mattermost %}
-              <p>Mattermost: <code>{{ solution.creator_mattermost }}</code></p>
+              <p><code>{{ solution.creator_mattermost }}</code></p>
               {% endif %}
             </td>
             <td>

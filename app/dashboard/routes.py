@@ -88,6 +88,7 @@ def dashboard():
             "title": solution.title,
             "revision": solution.revision,
             "status": solution.status.value,
+            "visibility": solution.visibility.value,
             "publisher_username": solution.publisher.username,
             "publisher_display_name": solution.publisher.display_name,
             "creator_mattermost": solution.creator.mattermost_handle,
