@@ -80,6 +80,7 @@ def dashboard():
     pending_metadata_review_solutions = []
     draft_solutions = []
     pending_name_review_solutions = []
+    unpublished_solutions = []
 
     for solution in solutions_query:
         solution_data = {
@@ -101,6 +102,8 @@ def dashboard():
             draft_solutions.append(solution_data)
         elif solution.status == SolutionStatus.PENDING_NAME_REVIEW:
             pending_name_review_solutions.append(solution_data)
+        elif solution.status == SolutionStatus.UNPUBLISHED:
+            unpublished_solutions.append(solution_data)
 
     return render_template(
         "dashboard.html",
@@ -108,6 +111,7 @@ def dashboard():
         pending_metadata_review_solutions=pending_metadata_review_solutions,
         draft_solutions=draft_solutions,
         pending_name_review_solutions=pending_name_review_solutions,
+        unpublished_solutions=unpublished_solutions,
     )
 
 
