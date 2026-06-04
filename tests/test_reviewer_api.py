@@ -67,3 +67,5 @@ def test_dashboard_with_login(client):
         response = client.get("/")
         assert response.status_code == 200
         mock_render.assert_called_once()
+        assert "draft_solutions" in mock_render.call_args.kwargs
+        assert "unpublished_solutions" in mock_render.call_args.kwargs
