@@ -41,6 +41,11 @@ EDITABLE_FIELDS = {
     "juju_versions",
 }
 
+SOLUTION_NAME_MAX_LENGTH = 40
+SOLUTION_TITLE_MAX_LENGTH = 40
+SOLUTION_SUMMARY_MAX_LENGTH = 500
+SUPPORTED_PLATFORMS = {platform.value for platform in PlatformTypes}
+
 
 def find_or_create_creator(
     creator_email: str,
@@ -87,7 +92,7 @@ def find_or_create_maintainer(email: str):
 
 
 def validate_solution_name(name: str) -> bool:
-    if not name:
+    if not name or len(name) > SOLUTION_NAME_MAX_LENGTH:
         return False
 
     if not re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", name):
@@ -100,13 +105,21 @@ def validate_solution_name(name: str) -> bool:
 
 
 def validate_solution_title(title: str) -> bool:
-    if not title:
+    if not title or len(title) > SOLUTION_TITLE_MAX_LENGTH:
         return False
 
     if not re.match(r"^[\w\s'\-]+$", title):
         return False
 
     return True
+
+
+def validate_solution_summary(summary: str) -> bool:
+    return bool(summary) and len(summary) <= SOLUTION_SUMMARY_MAX_LENGTH
+
+
+def validate_solution_platform(platform: str) -> bool:
+    return platform in SUPPORTED_PLATFORMS
 
 
 def register_solution_package(
@@ -137,9 +150,31 @@ def register_solution_package(
                 {
                     "code": "invalid-title",
                     "message": "Title format is invalid. "
-                    "It should only have ASCII lowercase letters, "
-                    "numbers, and hyphens, and must have "
-                    "at least one letter",
+                    f"It must be {SOLUTION_TITLE_MAX_LENGTH} characters "
+                    "or fewer and only contain ASCII lowercase letters, "
+                    "numbers, spaces and hyphens.",
+                }
+            ]
+        )
+
+    if not validate_solution_summary(summary):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-summary",
+                    "message": "Summary is required and must be "
+                    f"{SOLUTION_SUMMARY_MAX_LENGTH} characters or fewer.",
+                }
+            ]
+        )
+
+    if not validate_solution_platform(platform):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-platform",
+                    "message": "Platform must be one of: "
+                    f"{', '.join(sorted(SUPPORTED_PLATFORMS))}.",
                 }
             ]
         )
@@ -527,6 +562,34 @@ def update_draft_solution(solution, metadata):
     return serialize_solution(solution)
 
 
+def validate_solution_metadata(metadata: dict):
+    if "title" in metadata and not validate_solution_title(metadata["title"]):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-title",
+                    "message": "Title format is invalid. "
+                    f"It must be {SOLUTION_TITLE_MAX_LENGTH} characters "
+                    "or fewer and only contain ASCII lowercase letters, "
+                    "numbers, spaces and hyphens.",
+                }
+            ]
+        )
+
+    if "summary" in metadata and not validate_solution_summary(
+        metadata["summary"]
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-summary",
+                    "message": "Summary is required and must be "
+                    f"{SOLUTION_SUMMARY_MAX_LENGTH} characters or fewer.",
+                }
+            ]
+        )
+
+
 def update_solution_metadata(name: str, rev: int, metadata: dict):
     """
     Update solution metadata for a specific revision.
@@ -545,6 +608,8 @@ def update_solution_metadata(name: str, rev: int, metadata: dict):
 
     if not solution:
         return None
+
+    validate_solution_metadata(metadata)
 
     if solution.status not in [
         SolutionStatus.DRAFT,

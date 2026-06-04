@@ -150,7 +150,10 @@ def update_solution_revision(name, rev):
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    updated_solution = update_solution_metadata(name, rev, data)
+    try:
+        updated_solution = update_solution_metadata(name, rev, data)
+    except ValidationError as e:
+        return jsonify({"error-list": e.errors}), 400
 
     if not updated_solution:
         return jsonify({"error": "Failed to update solution"}), 500
