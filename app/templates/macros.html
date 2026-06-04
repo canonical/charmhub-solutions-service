@@ -16,7 +16,7 @@
         {% for solution in solutions %}
         <tr>
             <td>
-              {% if solution.status == 'pending_name_review' %}
+              {% if solution.status == 'pending_name_review' or solution.status == 'draft' %}
                 {{ solution.title }}
               {% else %}
                 <a href="{{ charmhub_url }}/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a>
@@ -31,6 +31,7 @@
               {% endif %}
             </td>
             <td>
+              {% if solution.status != 'draft' %}
               <a
                 href="{{ charmhub_url }}/solutions/preview/{{ solution.hash }}"
                 target="_blank"
@@ -38,6 +39,7 @@
               >
                 Preview
               </a>
+              {% endif %}
               {% if solution.status == 'pending_name_review' or solution.status == 'pending_metadata_review' %}
               <a href="{{ url_for('dashboard.review_solution', name=solution.name) }}" class="p-button--base is-dense">Review</a>
               {% endif %}
