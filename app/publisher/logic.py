@@ -119,7 +119,7 @@ def validate_solution_summary(summary: str) -> bool:
 
 
 def validate_solution_platform(platform: str) -> bool:
-    return platform in SUPPORTED_PLATFORMS
+    return bool(platform) and platform.lower() in SUPPORTED_PLATFORMS
 
 
 def register_solution_package(
