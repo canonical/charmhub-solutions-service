@@ -151,8 +151,8 @@ def register_solution_package(
                     "code": "invalid-title",
                     "message": "Title format is invalid. "
                     f"It must be {SOLUTION_TITLE_MAX_LENGTH} characters "
-                    "or fewer and only contain ASCII lowercase letters, "
-                    "numbers, spaces and hyphens.",
+                    "or fewer and only contain letters, numbers, spaces, "
+                    "apostrophes, underscores, and hyphens.",
                 }
             ]
         )
@@ -570,8 +570,8 @@ def validate_solution_metadata(metadata: dict):
                     "code": "invalid-title",
                     "message": "Title format is invalid. "
                     f"It must be {SOLUTION_TITLE_MAX_LENGTH} characters "
-                    "or fewer and only contain ASCII lowercase letters, "
-                    "numbers, spaces and hyphens.",
+                    "or fewer and only contain letters, numbers, spaces, "
+                    "apostrophes, underscores, and hyphens.",
                 }
             ]
         )
