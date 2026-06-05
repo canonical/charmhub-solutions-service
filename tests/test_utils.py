@@ -41,11 +41,6 @@ def test_public_serializer_excludes_private_fields():
         charms=[],
         maintainers=[],
         useful_links=[],
-        creator=SimpleNamespace(
-            email="creator@example.com",
-            mattermost_handle="creator-handle",
-        ),
-        approved_by="reviewer@example.com",
     )
 
     data = serialize_public_solution(solution)
