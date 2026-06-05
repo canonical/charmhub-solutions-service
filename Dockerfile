@@ -18,4 +18,4 @@ COPY entrypoint.sh .
 
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["0.0.0.0", "80"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=80"]
