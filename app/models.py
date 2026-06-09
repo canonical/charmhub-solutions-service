@@ -101,7 +101,6 @@ class Solution(db.Model):
     # github source repo
     documentation_source: Mapped[Optional[str]] = mapped_column(String)
     get_started_url: Mapped[Optional[str]] = mapped_column(String)
-    how_to_operate_url: Mapped[Optional[str]] = mapped_column(String)
     architecture_diagram_url: Mapped[Optional[str]] = mapped_column(String)
     architecture_explanation: Mapped[Optional[str]] = mapped_column(Text)
     submit_bug_url: Mapped[Optional[str]] = mapped_column(String)

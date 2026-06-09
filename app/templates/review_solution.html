@@ -119,12 +119,7 @@
                                 <strong>Get Started:</strong> <a href="{{ solution.get_started_url }}" target="_blank">{{ solution.get_started_url }}</a>
                             </p>
                         {% endif %}
-                        {% if solution.how_to_operate_url %}
-                            <p>
-                                <strong>How to Operate:</strong> <a href="{{ solution.how_to_operate_url }}" target="_blank">{{ solution.how_to_operate_url }}</a>
-                            </p>
-                        {% endif %}
-                        {% if not solution.documentation_main and not solution.documentation_source and not solution.get_started_url and not solution.how_to_operate_url %}
+                        {% if not solution.documentation_main and not solution.documentation_source and not solution.get_started_url %}
                             <p>No documentation specified</p>
                         {% endif %}
                         <hr>

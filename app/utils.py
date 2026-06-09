@@ -39,7 +39,6 @@ def serialize_solution(
             "main": solution.documentation_main,
             "source": solution.documentation_source,
             "get_started": solution.get_started_url,
-            "how_to_operate": solution.how_to_operate_url,
             "architecture_explanation": solution.architecture_explanation,
             "submit_a_bug": solution.submit_bug_url,
             "community_discussion": solution.community_discussion_url,
