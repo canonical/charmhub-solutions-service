@@ -13,8 +13,8 @@ class Config:
     SECRET_KEY = os.getenv(
         "FLASK_SECRET_KEY", "dev-secret-key"
     )
-    OPENID_LAUNCHPAD_TEAM = os.getenv(
-        "OPENID_LAUNCHPAD_TEAM", "charmhub-solution-reviewers"
+    FLASK_OPENID_LAUNCHPAD_TEAM = os.getenv(
+        "FLASK_OPENID_LAUNCHPAD_TEAM", "charmhub-solution-reviewers"
     )
     CHARMHUB_URL = os.getenv(
         "FLASK_CHARMHUB_URL", "http://localhost:8045"

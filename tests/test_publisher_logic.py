@@ -3,7 +3,8 @@ from unittest.mock import Mock, patch
 from app.publisher.logic import (
     find_or_create_creator,
     register_solution_package,
-    create_empty_solution
+    create_empty_solution,
+    validate_solution_metadata,
 )
 from app.models import Creator
 from app.exceptions import ValidationError
@@ -89,6 +90,52 @@ class TestRegisterSolutionPackage:
         errors = exc_info.value.errors
         assert len(errors) == 1
         assert errors[0]["code"] == "invalid-name"
+
+    def test_name_max_length_validation(self):
+        mock_creator = Mock(id=1)
+        with pytest.raises(ValidationError) as exc_info:
+            register_solution_package(
+                teams=["test-team"],
+                name="a" * 41,
+                publisher="test-team",
+                summary="Test summary",
+                creator=mock_creator,
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-name"
+
+    def test_summary_max_length_validation(self):
+        mock_creator = Mock(id=1)
+        with pytest.raises(ValidationError) as exc_info:
+            register_solution_package(
+                teams=["test-team"],
+                name="valid-name",
+                publisher="test-team",
+                summary="a" * 501,
+                creator=mock_creator,
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-summary"
+
+    def test_invalid_platform_validation(self):
+        mock_creator = Mock(id=1)
+        with pytest.raises(ValidationError) as exc_info:
+            register_solution_package(
+                teams=["test-team"],
+                name="valid-name",
+                publisher="test-team",
+                summary="Test summary",
+                creator=mock_creator,
+                platform="invalid-platform",
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-platform"
+
+    def test_metadata_title_max_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"title": "a" * 41})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-title"
 
     @patch("app.publisher.logic.get_solution_by_name")
     def test_already_exists_validation(self, mock_get_solution):

@@ -1,8 +1,10 @@
 from app.models import Solution
 
 
-def serialize_solution(solution: Solution) -> dict:
-    return {
+def serialize_solution(
+    solution: Solution, include_private: bool = True
+) -> dict:
+    data = {
         "id": solution.id,
         "name": solution.name,
         "hash": solution.hash,
@@ -49,13 +51,21 @@ def serialize_solution(solution: Solution) -> dict:
         "charms": [c.to_dict() for c in solution.charms],
         "maintainers": [m.to_dict() for m in solution.maintainers],
         "useful_links": [ul.to_dict() for ul in solution.useful_links],
-        "creator": (
+    }
+
+    if include_private:
+        data["creator"] = (
             {
                 "email": solution.creator.email,
                 "mattermost_handle": solution.creator.mattermost_handle,
             }
             if solution.creator
             else None
-        ),
-        "approved_by": solution.approved_by,
-    }
+        )
+        data["approved_by"] = solution.approved_by
+
+    return data
+
+
+def serialize_public_solution(solution: Solution) -> dict:
+    return serialize_solution(solution, include_private=False)

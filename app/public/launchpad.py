@@ -1,8 +1,9 @@
 import requests
 import functools
-import time 
+import time
 
 LAUNCHPAD_URL = "https://api.launchpad.net/1.0/"
+LAUNCHPAD_TIMEOUT = 10
 
 def time_cache(max_age, maxsize=128):
     """Least-recently-used cache decorator with time-based cache invalidation.
@@ -29,7 +30,7 @@ def time_cache(max_age, maxsize=128):
 @time_cache(max_age=3600)
 def get_user_teams(username):
     url = f"{LAUNCHPAD_URL}/~{username}/super_teams"
-    response = requests.get(url)
+    response = requests.get(url, timeout=LAUNCHPAD_TIMEOUT)
 
     if response.status_code != 200:
         raise Exception(
@@ -44,7 +45,7 @@ def get_launchpad_team(team_name):
     url = f"{LAUNCHPAD_URL}/~{team_name}"
 
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=LAUNCHPAD_TIMEOUT)
 
         if response.status_code == 404:
             return None

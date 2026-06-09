@@ -3,11 +3,12 @@
 # Exit on error
 set -e
 
-# Apply database migrations
-flask db upgrade
+if [ -n "$POSTGRESQL_DB_CONNECT_STRING" ]; then
+	python3 migrate.py
+fi
 
-# Seed the database
-python -m seed
+if [ "$SEED_DB" = "true" ]; then
+	python3 -m seed
+fi
 
-# Start the application
-flask run --host=$1 --port=$2
+exec "$@"
