@@ -81,7 +81,6 @@ def seed_database():
                     "main": "https://documentation.ubuntu.com/observability/",
                     "source": "https://github.com/canonical/observability/",
                     "get_started": "https://documentation.ubuntu.com/observability/tutorial/",
-                    "how_to_operate": "https://documentation.ubuntu.com/observability/how-to/",
                     "architecture_explanation": "this is an explanation of how COS works",
                     "submit_a_bug": "https://github.com/canonical/observability-docs/issues/new?title=docs%3A+TYPE+YOUR+QUESTION+HERE&body=*Please%20describe%20the%20question%20or%20issue%20you%27re%20facing%20with%20%22Observability%20Documentation%22.*%0A%0A%0A%0A%0A---%0A*Reported+from%3A+https://charmhub.io*",
                     "community_discussion": "https://discourse.charmhub.io/c/charm/observability/62",
@@ -178,7 +177,6 @@ def seed_database():
                     "main": "https://canonical.com/solutions/telco",
                     "source": "https://github.com/canonical/telco/",
                     "get_started": "https://documentation.ubuntu.com/telco/tutorial/",
-                    "how_to_operate": "https://documentation.ubuntu.com/telco/how-to/",
                     "architecture_explanation": "",
                     "submit_a_bug": "https://github.com/canonical/telco",
                     "community_discussion": "https://discourse.ubuntu.com",
@@ -262,7 +260,6 @@ def seed_database():
                 "documentation": {
                     "source": "https://github.com/canonical/charmed-kubeflow-solutions",
                     "get_started": "https://charmed-kubeflow.io/docs/get-started",
-                    "how_to_operate": "https://charmed-kubeflow.io/docs/how-to",
                     "architecture_explanation": "",
                     "submit_a_bug": "https://github.com/canonical/bundle-kubeflow",
                     "community_discussion": "https://discourse.charmhub.io/tag/kubeflow",
@@ -388,7 +385,6 @@ def seed_database():
                 documentation_main=data.get("documentation", {}).get("main", ""),
                 documentation_source=data.get("documentation", {}).get("source", ""),
                 get_started_url=data.get("documentation", {}).get("get_started", ""),
-                how_to_operate_url=data.get("documentation", {}).get("how_to_operate", ""),
                 architecture_diagram_url=data["media"]["architecture_diagram"],
                 architecture_explanation=data.get("documentation", {}).get(
                     "architecture_explanation", ""

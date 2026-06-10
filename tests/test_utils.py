@@ -32,7 +32,6 @@ def test_public_serializer_excludes_private_fields():
         documentation_main=None,
         documentation_source=None,
         get_started_url=None,
-        how_to_operate_url=None,
         architecture_explanation=None,
         submit_bug_url=None,
         community_discussion_url=None,
