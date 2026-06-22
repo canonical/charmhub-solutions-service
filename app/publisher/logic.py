@@ -20,6 +20,7 @@ from app.exceptions import ValidationError
 import uuid
 import re
 from sqlalchemy import inspect
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone
 
 
@@ -314,31 +315,25 @@ def create_new_solution_revision(
     if not current_solution:
         return None
 
-    try:
+    mapper = inspect(Solution)
+    data = {}
+    for column in mapper.columns:
+        if column.key not in ["id"]:
+            data[column.key] = getattr(current_solution, column.key)
 
-        mapper = inspect(Solution)
-        data = {}
-        for column in mapper.columns:
-            if column.key not in ["id"]:
-                data[column.key] = getattr(current_solution, column.key)
+    data["hash"] = uuid.uuid4().hex[:16]
+    data["revision"] = current_solution.revision + 1
+    data["status"] = SolutionStatus.DRAFT
+    data["creator_id"] = creator.id  # Set the new creator for this revision
 
-        data["hash"] = uuid.uuid4().hex[:16]
-        data["revision"] = current_solution.revision + 1
-        data["status"] = SolutionStatus.DRAFT
-        data["creator_id"] = creator.id  # Set the new creator for this revision
-
-        new_solution = Solution(**data)
-        db.session.add(new_solution)
-        db.session.commit()
-        return serialize_solution(new_solution)
-
-    except Exception:
-        db.session.rollback()
-        raise
+    new_solution = Solution(**data)
+    db.session.add(new_solution)
+    db.session.flush()
+    return serialize_solution(new_solution)
 
 
-def get_draft_solution_by_name(name: str):
-    solution = (
+def find_draft_solution_by_name(name: str):
+    return (
         db.session.query(Solution)
         .filter(
             Solution.name == name,
@@ -346,6 +341,10 @@ def get_draft_solution_by_name(name: str):
         )
         .first()
     )
+
+
+def get_draft_solution_by_name(name: str):
+    solution = find_draft_solution_by_name(name)
     return serialize_solution(solution) if solution else None
 
 
@@ -359,6 +358,41 @@ def get_solution_by_name_and_rev(name: str, rev: int):
         .first()
     )
     return serialize_solution(solution) if solution else None
+
+
+def get_publisher_solution_by_hash(hash: str, teams: list[str]):
+    """Fetch a single solution by hash, scoped to the user's teams.
+    When the solution is published and has an in-progress draft update, 
+    the draft summary is attached as ``draft_update``.
+    """
+    if not teams:
+        return None
+
+    solution = (
+        db.session.query(Solution)
+        .join(Publisher, Solution.publisher_id == Publisher.publisher_id)
+        .filter(
+            Solution.hash == hash,
+            Publisher.username.in_(teams),
+        )
+        .first()
+    )
+
+    if not solution:
+        return None
+
+    data = serialize_solution(solution)
+
+    if solution.status == SolutionStatus.PUBLISHED:
+        draft = find_draft_solution_by_name(solution.name)
+        if draft and draft.revision > 1:
+            data["draft_update"] = {
+                "hash": draft.hash,
+                "revision": draft.revision,
+                "last_updated": draft.last_updated,
+            }
+
+    return data
 
 
 def copy_charms_to_solution(
@@ -513,7 +547,7 @@ def update_published_solution(solution, metadata):
     return serialize_solution(new_solution)
 
 
-def update_draft_solution(solution, metadata):
+def update_draft_solution(solution, metadata, submit_for_review=True):
     charms_data = metadata.pop("charms", None)
     useful_links_data = metadata.pop("useful_links", None)
     use_cases_data = metadata.pop("use_cases", None)
@@ -551,15 +585,32 @@ def update_draft_solution(solution, metadata):
         solution, creator_email, mattermost_handle
     )
 
-    if solution.revision == 1:
-        solution.status = SolutionStatus.PENDING_METADATA_REVIEW
-    else:
-        solution.status = SolutionStatus.PUBLISHED
+    if submit_for_review:
+        if solution.revision == 1:
+            solution.status = SolutionStatus.PENDING_METADATA_REVIEW
+        else:
+            unpublish_other_published_revisions(solution)
+            solution.status = SolutionStatus.PUBLISHED
 
     solution.last_updated = datetime.now(timezone.utc)
 
     db.session.commit()
     return serialize_solution(solution)
+
+
+def unpublish_other_published_revisions(solution):
+    published_solutions = (
+        db.session.query(Solution)
+        .filter(
+            Solution.name == solution.name,
+            Solution.id != solution.id,
+            Solution.status == SolutionStatus.PUBLISHED,
+        )
+        .all()
+    )
+
+    for published_solution in published_solutions:
+        published_solution.status = SolutionStatus.UNPUBLISHED
 
 
 def validate_solution_metadata(metadata: dict):
@@ -590,12 +641,16 @@ def validate_solution_metadata(metadata: dict):
         )
 
 
-def update_solution_metadata(name: str, rev: int, metadata: dict):
+def update_solution_metadata(
+    name: str,
+    rev: int,
+    metadata: dict,
+    submit_for_review: bool = True,
+):
     """
     Update solution metadata for a specific revision.
-    For revision 1: sets status to PENDING_METADATA_REVIEW
-    For revision >1: sets status to PUBLISHED (update without review)
-    and increases revision number by 1
+    When submit_for_review is False, metadata is saved without changing
+    the solution status.
     """
     solution = (
         db.session.query(Solution)
@@ -609,7 +664,8 @@ def update_solution_metadata(name: str, rev: int, metadata: dict):
     if not solution:
         return None
 
-    validate_solution_metadata(metadata)
+    if submit_for_review:
+        validate_solution_metadata(metadata)
 
     if solution.status not in [
         SolutionStatus.DRAFT,
@@ -627,9 +683,37 @@ def update_solution_metadata(name: str, rev: int, metadata: dict):
 
     try:
         if solution.status == SolutionStatus.PUBLISHED:
-            return update_published_solution(solution, metadata)
-        else:
-            return update_draft_solution(solution, metadata)
+            draft_solution = find_draft_solution_by_name(name)
+
+            if submit_for_review:
+                if draft_solution:
+                    return update_draft_solution(
+                        draft_solution,
+                        metadata,
+                        submit_for_review=True,
+                    )
+
+                return update_published_solution(solution, metadata)
+
+            if not draft_solution:
+                try:
+                    with db.session.begin_nested():
+                        create_new_solution_revision(name, solution.creator)
+                except IntegrityError:
+                    pass
+                draft_solution = find_draft_solution_by_name(name)
+
+            return update_draft_solution(
+                draft_solution,
+                metadata,
+                submit_for_review=False,
+            )
+
+        return update_draft_solution(
+            solution,
+            metadata,
+            submit_for_review=submit_for_review,
+        )
 
     except Exception:
         db.session.rollback()

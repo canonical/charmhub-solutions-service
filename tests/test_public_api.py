@@ -1,7 +1,9 @@
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from flask import Flask
 from app.public.api import public_bp
+from app.public.logic import get_published_solution_by_hash
+from app.models import SolutionStatus
 
 
 @pytest.fixture
@@ -117,3 +119,19 @@ def test_check_solution_name_does_not_exist(mock_solution, client):
     data = response.get_json()
     assert data["exists"] is False
     mock_solution.query.filter_by.assert_called_once_with(name="new-solution")
+
+
+@patch("app.public.logic.serialize_public_solution")
+@patch("app.public.logic.db.session")
+def test_get_published_solution_by_hash_serves_draft(
+    mock_session, mock_serialize_public_solution
+):
+
+    draft_solution = Mock(status=SolutionStatus.DRAFT)
+    mock_session.query().filter().first.return_value = draft_solution
+    mock_serialize_public_solution.return_value = {"status": "draft"}
+
+    result = get_published_solution_by_hash("randomhash")
+
+    assert result == {"status": "draft"}
+    mock_serialize_public_solution.assert_called_once_with(draft_solution)

@@ -5,8 +5,9 @@ from app.publisher.logic import (
     register_solution_package,
     create_empty_solution,
     validate_solution_metadata,
+    update_solution_metadata,
 )
-from app.models import Creator
+from app.models import Creator, SolutionStatus
 from app.exceptions import ValidationError
 
 
@@ -192,6 +193,48 @@ class TestRegisterSolutionPackage:
 
         mock_create_solution.assert_called_once()
         assert result == {"name": "test-solution"}
+
+
+class TestUpdateSolutionMetadata:
+    @patch("app.publisher.logic.update_published_solution")
+    @patch("app.publisher.logic.update_draft_solution")
+    @patch("app.publisher.logic.find_draft_solution_by_name")
+    @patch("app.publisher.logic.validate_solution_metadata")
+    @patch("app.publisher.logic.db.session")
+    def test_published_update_reuses_existing_draft(
+        self,
+        mock_session,
+        mock_validate_solution_metadata,
+        mock_find_draft_solution_by_name,
+        mock_update_draft_solution,
+        mock_update_published_solution,
+    ):
+        published_solution = Mock(status=SolutionStatus.PUBLISHED)
+        draft_solution = Mock(status=SolutionStatus.DRAFT)
+        metadata = {"title": "Updated Title"}
+
+        mock_session.query().filter().first.return_value = published_solution
+        mock_find_draft_solution_by_name.return_value = draft_solution
+        mock_update_draft_solution.return_value = {
+            "revision": 2,
+            "status": "published",
+        }
+
+        result = update_solution_metadata(
+            "test-solution",
+            1,
+            metadata,
+            submit_for_review=True,
+        )
+
+        assert result == {"revision": 2, "status": "published"}
+        mock_validate_solution_metadata.assert_called_once_with(metadata)
+        mock_update_draft_solution.assert_called_once_with(
+            draft_solution,
+            metadata,
+            submit_for_review=True,
+        )
+        mock_update_published_solution.assert_not_called()
 
 
 class TestTransactionSafety:
