@@ -389,7 +389,11 @@ def get_publisher_solution_by_hash(hash: str, teams: list[str]):
             data["draft_update"] = {
                 "hash": draft.hash,
                 "revision": draft.revision,
-                "last_updated": draft.last_updated,
+                "last_updated": (
+                    draft.last_updated.isoformat()
+                    if draft.last_updated
+                    else None
+                ),
             }
 
     return data
