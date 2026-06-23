@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify, g, request
+from app.extensions import db
 from app.publisher.logic import (
     get_solutions_by_lp_teams,
     create_new_solution_revision,
     get_draft_solution_by_name,
     get_solution_by_name_and_rev,
+    get_publisher_solution_by_hash,
     update_solution_metadata,
     register_solution_package,
     find_or_create_creator,
@@ -26,6 +28,21 @@ def get_publisher_solutions():
 
     solutions = get_solutions_by_lp_teams(teams)
     return jsonify(solutions), 200
+
+
+@publisher_bp.route("/solutions/by-hash/<string:hash>", methods=["GET"])
+@login_required
+def get_publisher_solution(hash):
+    user = g.user
+    teams = g.user["teams"]
+    if not teams:
+        teams = get_user_teams(user["username"])
+
+    solution = get_publisher_solution_by_hash(hash, teams)
+    if not solution:
+        return jsonify({"error": "Solution not found"}), 404
+
+    return jsonify(solution), 200
 
 
 @publisher_bp.route("/solutions", methods=["POST"])
@@ -123,10 +140,12 @@ def create_solution_revision(name):
         data.get("mattermost_handle"),
     )
 
-    solution = create_new_solution_revision(
-        name=name,
-        creator=creator,
-    )
+    try:
+        solution = create_new_solution_revision(name=name, creator=creator)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
     return jsonify(solution), 200
 
@@ -150,8 +169,15 @@ def update_solution_revision(name, rev):
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
+    submit_for_review = data.pop("submit_for_review", True)
+
     try:
-        updated_solution = update_solution_metadata(name, rev, data)
+        updated_solution = update_solution_metadata(
+            name,
+            rev,
+            data,
+            submit_for_review=submit_for_review,
+        )
     except ValidationError as e:
         return jsonify({"error-list": e.errors}), 400
 

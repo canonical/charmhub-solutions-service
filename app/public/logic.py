@@ -68,10 +68,11 @@ def get_published_solution_by_hash(hash: str):
     ):
         return serialize_public_solution(solution)
 
-    # allow previewing pending solutions (for review dashboard)
+    # allow previewing pending and draft solutions
     if solution.status in [
         SolutionStatus.PENDING_NAME_REVIEW,
         SolutionStatus.PENDING_METADATA_REVIEW,
+        SolutionStatus.DRAFT,
     ]:
         return serialize_public_solution(solution)
 

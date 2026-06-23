@@ -57,6 +57,62 @@ def test_get_publisher_solutions(
 
 @patch("app.public.auth.get_user_teams")
 @patch("app.public.auth.decode_jwt_token")
+@patch("app.publisher.api.get_publisher_solution_by_hash")
+def test_get_publisher_solution_by_hash(
+    mock_get_publisher_solution_by_hash,
+    mock_decode_jwt_token,
+    mock_get_user_teams,
+    client,
+):
+    mock_decode_jwt_token.return_value = {"sub": "testuser"}
+    mock_get_user_teams.return_value = ["team1", "team2"]
+    mock_get_publisher_solution_by_hash.return_value = {
+        "name": "test-solution",
+        "hash": "abc123",
+        "status": "published",
+        "draft_update": {"hash": "def456", "revision": 2},
+    }
+
+    response = client.get(
+        "/api/publisher/solutions/by-hash/abc123",
+        headers={"Authorization": "Bearer fake token"},
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["hash"] == "abc123"
+    assert data["draft_update"]["hash"] == "def456"
+    mock_get_publisher_solution_by_hash.assert_called_once_with(
+        "abc123", ["team1", "team2"]
+    )
+
+
+@patch("app.public.auth.get_user_teams")
+@patch("app.public.auth.decode_jwt_token")
+@patch("app.publisher.api.get_publisher_solution_by_hash")
+def test_get_publisher_solution_by_hash_not_found(
+    mock_get_publisher_solution_by_hash,
+    mock_decode_jwt_token,
+    mock_get_user_teams,
+    client,
+):
+    mock_decode_jwt_token.return_value = {"sub": "testuser"}
+    mock_get_user_teams.return_value = ["team1"]
+    mock_get_publisher_solution_by_hash.return_value = None
+
+    response = client.get(
+        "/api/publisher/solutions/by-hash/missing",
+        headers={"Authorization": "Bearer fake token"},
+    )
+
+    assert response.status_code == 404
+    mock_get_publisher_solution_by_hash.assert_called_once_with(
+        "missing", ["team1"]
+    )
+
+
+@patch("app.public.auth.get_user_teams")
+@patch("app.public.auth.decode_jwt_token")
 @patch("app.publisher.api.find_or_create_creator")
 @patch("app.publisher.api.register_solution_package")
 def test_register_solution(
@@ -189,6 +245,7 @@ def test_update_solution_revision_1(
         "test-solution",
         1,
         {"title": "Updated Title", "description": "Updated description"},
+        submit_for_review=True,
     )
 
 
@@ -230,6 +287,53 @@ def test_update_solution_revision_greater_than_1(
     data = response.get_json()
     assert data["title"] == "Updated Title"
     assert data["status"] == "published"
+    mock_update_solution_metadata.assert_called_once_with(
+        "test-solution",
+        2,
+        {"title": "Updated Title"},
+        submit_for_review=True,
+    )
+
+
+@patch("app.public.auth.get_user_teams")
+@patch("app.public.auth.decode_jwt_token")
+@patch("app.publisher.api.update_solution_metadata")
+@patch("app.publisher.api.get_solution_by_name_and_rev")
+def test_update_solution_revision_save_draft(
+    mock_get_solution_by_name_and_rev,
+    mock_update_solution_metadata,
+    mock_decode_jwt_token,
+    mock_get_user_teams,
+    client,
+):
+    mock_decode_jwt_token.return_value = {"sub": "testuser"}
+    mock_get_user_teams.return_value = ["team1"]
+    mock_get_solution_by_name_and_rev.return_value = {
+        "name": "test-solution",
+        "revision": 2,
+        "publisher": {"username": "team1"},
+    }
+    mock_update_solution_metadata.return_value = {
+        "name": "test-solution",
+        "revision": 2,
+        "status": "draft",
+        "title": "Draft title",
+    }
+
+    response = client.patch(
+        "/api/publisher/solutions/test-solution/2",
+        json={"title": "Draft title", "submit_for_review": False},
+        headers={"Authorization": "Bearer fake token"},
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["status"] == "draft"
+    mock_update_solution_metadata.assert_called_once_with(
+        "test-solution",
+        2,
+        {"title": "Draft title"},
+        submit_for_review=False,
+    )
 
 
 @patch("app.public.auth.get_user_teams")
