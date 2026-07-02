@@ -5,6 +5,7 @@ from app.publisher.logic import (
     register_solution_package,
     create_empty_solution,
     validate_solution_metadata,
+    validate_solution_categories,
     update_solution_metadata,
 )
 from app.models import Creator, SolutionStatus
@@ -138,6 +139,38 @@ class TestRegisterSolutionPackage:
 
         assert exc_info.value.errors[0]["code"] == "invalid-title"
 
+    def test_metadata_categories_required(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {"title": "Valid", "summary": "ok", "categories": []}
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-categories"
+
+    def test_metadata_categories_too_many(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {"categories": ["ai-ml", "storage", "cloud"]}
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-categories"
+
+    def test_metadata_valid_categories(self):
+        validate_solution_metadata(
+            {
+                "title": "Valid",
+                "summary": "ok",
+                "categories": ["ai-ml", "storage"],
+            }
+        )
+
+    def test_validate_solution_categories_count(self):
+        assert validate_solution_categories(["ai-ml"]) is True
+        assert validate_solution_categories(["ai-ml", "storage"]) is True
+        assert validate_solution_categories([]) is False
+        assert validate_solution_categories(["a", "b", "c"]) is False
+        assert validate_solution_categories(None) is False
+
     @patch("app.publisher.logic.get_solution_by_name")
     def test_already_exists_validation(self, mock_get_solution):
         mock_get_solution.return_value = {"name": "existing-solution"}
@@ -235,6 +268,29 @@ class TestUpdateSolutionMetadata:
             submit_for_review=True,
         )
         mock_update_published_solution.assert_not_called()
+
+    @patch("app.publisher.logic.update_draft_solution")
+    @patch("app.publisher.logic.db.session")
+    def test_submit_keeps_existing_categories_when_omitted(
+        self,
+        mock_session,
+        mock_update_draft_solution,
+    ):
+        solution = Mock(
+            status=SolutionStatus.DRAFT,
+            revision=1,
+            categories=["ai-ml"],
+        )
+        mock_session.query().filter().first.return_value = solution
+        mock_update_draft_solution.return_value = {"revision": 1}
+        metadata = {"title": "Valid", "summary": "ok"}
+
+        result = update_solution_metadata(
+            "test-solution", 1, metadata, submit_for_review=True
+        )
+
+        assert result == {"revision": 1}
+        assert metadata["categories"] == ["ai-ml"]
 
 
 class TestTransactionSafety:

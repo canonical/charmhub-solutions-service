@@ -102,6 +102,7 @@ def seed_database():
                     {"name": "tempo-coordinator-k8s"},
                 ],
                 "compatibility": {"juju_versions": [">=3.0"]},
+                "categories": ["logging-tracing", "monitoring"],
                 "maintainers": [
                     {
                         "display_name": "maintainerA",
@@ -200,6 +201,7 @@ def seed_database():
                     {"name": "sdcore-upf-k8s"},
                 ],
                 "compatibility": {"juju_versions": [">=3.0.3"]},
+                "categories": ["networking"],
                 "maintainers": [
                     {
                         "display_name": "maintainerB",
@@ -304,6 +306,7 @@ def seed_database():
                     {"name": "training-operator"},
                 ],
                 "compatibility": {"juju_versions": [">=3.1.0"]},
+                "categories": ["ai-ml"],
                 "maintainers": [
                     {
                         "display_name": "maintainerC",
@@ -394,6 +397,7 @@ def seed_database():
                     "community_discussion", ""
                 ),
                 juju_versions=data["compatibility"]["juju_versions"],
+                categories=data.get("categories"),
                 publisher_id=publisher.publisher_id,
                 creator_id=creator.id,
                 maintainers=maintainers,

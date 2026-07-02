@@ -29,6 +29,7 @@ def test_public_serializer_excludes_private_fields():
         platform_version=[],
         platform_prerequisites=[],
         juju_versions=[],
+        categories=[],
         documentation_main=None,
         documentation_source=None,
         get_started_url=None,
