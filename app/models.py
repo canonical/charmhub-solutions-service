@@ -109,6 +109,9 @@ class Solution(db.Model):
     # compatibility with juju versions
     juju_versions: Mapped[Optional[List[str]]] = mapped_column(JSON)
 
+    # list of category slugs (mirrors charm categories, min 1 / max 2)
+    categories: Mapped[Optional[List[str]]] = mapped_column(JSON)
+
     publisher_id: Mapped[str] = mapped_column(
         ForeignKey("publisher.publisher_id"), nullable=False
     )

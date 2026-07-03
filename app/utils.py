@@ -35,6 +35,7 @@ def serialize_solution(
         "compatibility": {
             "juju_versions": solution.juju_versions or [],
         },
+        "categories": solution.categories or [],
         "documentation": {
             "main": solution.documentation_main,
             "source": solution.documentation_source,

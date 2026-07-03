@@ -40,11 +40,14 @@ EDITABLE_FIELDS = {
     "platform_version",
     "platform_prerequisites",
     "juju_versions",
+    "categories",
 }
 
 SOLUTION_NAME_MAX_LENGTH = 40
 SOLUTION_TITLE_MAX_LENGTH = 40
 SOLUTION_SUMMARY_MAX_LENGTH = 500
+SOLUTION_CATEGORIES_MIN = 1
+SOLUTION_CATEGORIES_MAX = 2
 SUPPORTED_PLATFORMS = {platform.value for platform in PlatformTypes}
 
 
@@ -121,6 +124,14 @@ def validate_solution_summary(summary: str) -> bool:
 
 def validate_solution_platform(platform: str) -> bool:
     return bool(platform) and platform.lower() in SUPPORTED_PLATFORMS
+
+
+def validate_solution_categories(categories) -> bool:
+    return isinstance(categories, list) and (
+        SOLUTION_CATEGORIES_MIN
+        <= len(categories)
+        <= SOLUTION_CATEGORIES_MAX
+    )
 
 
 def register_solution_package(
@@ -644,6 +655,18 @@ def validate_solution_metadata(metadata: dict):
             ]
         )
 
+    if not validate_solution_categories(metadata.get("categories")):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-categories",
+                    "message": "Please select between "
+                    f"{SOLUTION_CATEGORIES_MIN} and "
+                    f"{SOLUTION_CATEGORIES_MAX} categories.",
+                }
+            ]
+        )
+
 
 def update_solution_metadata(
     name: str,
@@ -669,6 +692,9 @@ def update_solution_metadata(
         return None
 
     if submit_for_review:
+        # categories are required on submit
+        if "categories" not in metadata:
+            metadata["categories"] = solution.categories or []
         validate_solution_metadata(metadata)
 
     if solution.status not in [
