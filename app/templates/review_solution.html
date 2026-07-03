@@ -90,6 +90,17 @@
                     {% endif %}
                     {% if solution.status.value != 'pending_name_review' %}
                         <hr>
+                        <h4>Categories</h4>
+                        {% if solution.categories %}
+                            <ul>
+                                {% for category in solution.categories %}
+                                    <li>{{ category | replace('-', ' ') | title }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No categories specified</p>
+                        {% endif %}
+                        <hr>
                         <h4>Summary & Description</h4>
                         {% if solution.summary %}
                             <p>
