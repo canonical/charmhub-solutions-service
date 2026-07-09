@@ -135,7 +135,7 @@ class TestRegisterSolutionPackage:
 
     def test_metadata_title_max_length_validation(self):
         with pytest.raises(ValidationError) as exc_info:
-            validate_solution_metadata({"title": "a" * 41})
+            validate_solution_metadata({"title": "a" * 31})
 
         assert exc_info.value.errors[0]["code"] == "invalid-title"
 
