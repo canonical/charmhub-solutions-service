@@ -48,6 +48,8 @@ SOLUTION_TITLE_MAX_LENGTH = 40
 SOLUTION_SUMMARY_MAX_LENGTH = 500
 SOLUTION_CATEGORIES_MIN = 1
 SOLUTION_CATEGORIES_MAX = 2
+COMPATIBILITY_VERSIONS_MIN = 1
+COMPATIBILITY_VERSIONS_MAX = 3
 SUPPORTED_PLATFORMS = {platform.value for platform in PlatformTypes}
 
 
@@ -132,6 +134,9 @@ def validate_solution_categories(categories) -> bool:
         <= len(categories)
         <= SOLUTION_CATEGORIES_MAX
     )
+
+def validate_list_count(items, min_items, max_items) -> bool:
+    return isinstance(items, list) and min_items <= len(items) <= max_items
 
 
 def register_solution_package(
@@ -651,6 +656,40 @@ def validate_solution_metadata(metadata: dict):
                     "code": "invalid-summary",
                     "message": "Summary is required and must be "
                     f"{SOLUTION_SUMMARY_MAX_LENGTH} characters or fewer.",
+                }
+            ]
+        )
+
+    if "platform_version" in metadata and not validate_list_count(
+        metadata["platform_version"],
+        COMPATIBILITY_VERSIONS_MIN,
+        COMPATIBILITY_VERSIONS_MAX,
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-platform-version",
+                    "message": "Please provide between "
+                    f"{COMPATIBILITY_VERSIONS_MIN} and "
+                    f"{COMPATIBILITY_VERSIONS_MAX} "
+                    "platform versions.",
+                }
+            ]
+        )
+
+    if "juju_versions" in metadata and not validate_list_count(
+        metadata["juju_versions"],
+        COMPATIBILITY_VERSIONS_MIN,
+        COMPATIBILITY_VERSIONS_MAX,
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-juju-versions",
+                    "message": "Please provide between "
+                    f"{COMPATIBILITY_VERSIONS_MIN} and "
+                    f"{COMPATIBILITY_VERSIONS_MAX} "
+                    "Juju versions.",
                 }
             ]
         )

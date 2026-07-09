@@ -139,6 +139,30 @@ class TestRegisterSolutionPackage:
 
         assert exc_info.value.errors[0]["code"] == "invalid-title"
 
+    def test_metadata_platform_version_count_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"platform_version": []})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-platform-version"
+
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {"platform_version": ["1", "2", "3", "4"]}
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-platform-version"
+
+    def test_metadata_juju_versions_count_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"juju_versions": []})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-juju-versions"
+
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"juju_versions": ["1", "2", "3", "4"]})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-juju-versions"
+
     def test_metadata_categories_required(self):
         with pytest.raises(ValidationError) as exc_info:
             validate_solution_metadata(
