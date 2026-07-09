@@ -138,6 +138,7 @@ class TestRegisterSolutionPackage:
             validate_solution_metadata({"title": "a" * 31})
 
         assert exc_info.value.errors[0]["code"] == "invalid-title"
+        assert exc_info.value.errors[0]["field"] == "Title"
 
     def test_metadata_description_max_length_validation(self):
         with pytest.raises(ValidationError) as exc_info:

@@ -680,6 +680,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-title",
+                    "field": "Title",
                     "message": "Title format is invalid. "
                     f"It must be {SOLUTION_TITLE_MAX_LENGTH} characters "
                     "or fewer and only contain letters, numbers, spaces, "
@@ -695,6 +696,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-summary",
+                    "field": "Summary",
                     "message": "Summary is required and must be "
                     f"{SOLUTION_SUMMARY_MAX_LENGTH} characters or fewer.",
                 }
@@ -708,6 +710,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-description",
+                    "field": "Description",
                     "message": "Description is required and must be "
                     f"{SOLUTION_DESCRIPTION_MAX_LENGTH} characters or fewer.",
                 }
@@ -722,6 +725,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-architecture-explanation",
+                    "field": "Architecture explanation",
                     "message": "Architecture explanation is required and "
                     f"must be {SOLUTION_ARCHITECTURE_EXPLANATION_MAX_LENGTH} "
                     "characters or fewer.",
@@ -738,6 +742,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-platform-version",
+                    "field": "Platform versions",
                     "message": "Please provide between "
                     f"{COMPATIBILITY_VERSIONS_MIN} and "
                     f"{COMPATIBILITY_VERSIONS_MAX} "
@@ -755,6 +760,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-juju-versions",
+                    "field": "Juju versions",
                     "message": "Please provide between "
                     f"{COMPATIBILITY_VERSIONS_MIN} and "
                     f"{COMPATIBILITY_VERSIONS_MAX} "
@@ -770,6 +776,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-use-cases",
+                    "field": "Use cases",
                     "message": "Use case titles must be "
                     f"{USE_CASE_TITLE_MAX_LENGTH} characters or fewer and "
                     "descriptions must be "
@@ -785,6 +792,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-useful-links",
+                    "field": "Useful links",
                     "message": "Useful link text must be "
                     f"{USEFUL_LINK_TITLE_MAX_LENGTH} characters or fewer.",
                 }
@@ -796,6 +804,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-categories",
+                    "field": "Categories",
                     "message": "Please select between "
                     f"{SOLUTION_CATEGORIES_MIN} and "
                     f"{SOLUTION_CATEGORIES_MAX} categories.",
