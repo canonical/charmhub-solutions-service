@@ -145,6 +145,17 @@ class TestRegisterSolutionPackage:
 
         assert exc_info.value.errors[0]["code"] == "invalid-description"
 
+    def test_metadata_architecture_explanation_max_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {"architecture_explanation": "a" * 2001}
+            )
+
+        assert (
+            exc_info.value.errors[0]["code"]
+            == "invalid-architecture-explanation"
+        )
+
     def test_metadata_platform_version_count_validation(self):
         with pytest.raises(ValidationError) as exc_info:
             validate_solution_metadata({"platform_version": []})
