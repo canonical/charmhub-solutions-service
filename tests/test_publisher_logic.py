@@ -204,6 +204,21 @@ class TestRegisterSolutionPackage:
 
         assert exc_info.value.errors[0]["code"] == "invalid-use-cases"
 
+    def test_metadata_useful_link_title_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {
+                    "useful_links": [
+                        {
+                            "title": "a" * 31,
+                            "url": "https://example.com",
+                        }
+                    ]
+                }
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-useful-links"
+
     def test_metadata_categories_required(self):
         with pytest.raises(ValidationError) as exc_info:
             validate_solution_metadata(

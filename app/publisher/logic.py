@@ -54,6 +54,7 @@ COMPATIBILITY_VERSIONS_MIN = 1
 COMPATIBILITY_VERSIONS_MAX = 3
 USE_CASE_TITLE_MAX_LENGTH = 30
 USE_CASE_DESCRIPTION_MAX_LENGTH = 500
+USEFUL_LINK_TITLE_MAX_LENGTH = 30
 SUPPORTED_PLATFORMS = {platform.value for platform in PlatformTypes}
 
 
@@ -160,6 +161,19 @@ def validate_use_cases(use_cases) -> bool:
 
         if not validate_text_length(
             use_case.get("description"), USE_CASE_DESCRIPTION_MAX_LENGTH
+        ):
+            return False
+
+    return True
+
+
+def validate_useful_links(useful_links) -> bool:
+    if not isinstance(useful_links, list):
+        return False
+
+    for link in useful_links:
+        if not validate_text_length(
+            link.get("title"), USEFUL_LINK_TITLE_MAX_LENGTH
         ):
             return False
 
@@ -760,6 +774,19 @@ def validate_solution_metadata(metadata: dict):
                     f"{USE_CASE_TITLE_MAX_LENGTH} characters or fewer and "
                     "descriptions must be "
                     f"{USE_CASE_DESCRIPTION_MAX_LENGTH} characters or fewer.",
+                }
+            ]
+        )
+
+    if "useful_links" in metadata and not validate_useful_links(
+        metadata["useful_links"]
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-useful-links",
+                    "message": "Useful link text must be "
+                    f"{USEFUL_LINK_TITLE_MAX_LENGTH} characters or fewer.",
                 }
             ]
         )
