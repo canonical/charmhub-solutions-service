@@ -50,6 +50,7 @@ SOLUTION_CATEGORIES_MIN = 1
 SOLUTION_CATEGORIES_MAX = 2
 COMPATIBILITY_VERSIONS_MIN = 1
 COMPATIBILITY_VERSIONS_MAX = 3
+USE_CASE_TITLE_MAX_LENGTH = 30
 SUPPORTED_PLATFORMS = {platform.value for platform in PlatformTypes}
 
 
@@ -135,8 +136,26 @@ def validate_solution_categories(categories) -> bool:
         <= SOLUTION_CATEGORIES_MAX
     )
 
+
 def validate_list_count(items, min_items, max_items) -> bool:
     return isinstance(items, list) and min_items <= len(items) <= max_items
+
+
+def validate_text_length(value, max_length) -> bool:
+    return bool(value) and len(value) <= max_length
+
+
+def validate_use_cases(use_cases) -> bool:
+    if not isinstance(use_cases, list):
+        return False
+
+    for use_case in use_cases:
+        if not validate_text_length(
+            use_case.get("title"), USE_CASE_TITLE_MAX_LENGTH
+        ):
+            return False
+
+    return True
 
 
 def register_solution_package(
@@ -690,6 +709,19 @@ def validate_solution_metadata(metadata: dict):
                     f"{COMPATIBILITY_VERSIONS_MIN} and "
                     f"{COMPATIBILITY_VERSIONS_MAX} "
                     "Juju versions.",
+                }
+            ]
+        )
+
+    if "use_cases" in metadata and not validate_use_cases(
+        metadata["use_cases"]
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-use-cases",
+                    "message": "Use case titles must be "
+                    f"{USE_CASE_TITLE_MAX_LENGTH} characters or fewer.",
                 }
             ]
         )
