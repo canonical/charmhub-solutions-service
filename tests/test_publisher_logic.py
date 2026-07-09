@@ -175,6 +175,18 @@ class TestRegisterSolutionPackage:
 
         assert exc_info.value.errors[0]["code"] == "invalid-use-cases"
 
+    def test_metadata_use_case_description_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {
+                    "use_cases": [
+                        {"title": "valid", "description": "a" * 501}
+                    ]
+                }
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-use-cases"
+
     def test_metadata_categories_required(self):
         with pytest.raises(ValidationError) as exc_info:
             validate_solution_metadata(

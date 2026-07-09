@@ -51,6 +51,7 @@ SOLUTION_CATEGORIES_MAX = 2
 COMPATIBILITY_VERSIONS_MIN = 1
 COMPATIBILITY_VERSIONS_MAX = 3
 USE_CASE_TITLE_MAX_LENGTH = 30
+USE_CASE_DESCRIPTION_MAX_LENGTH = 500
 SUPPORTED_PLATFORMS = {platform.value for platform in PlatformTypes}
 
 
@@ -152,6 +153,11 @@ def validate_use_cases(use_cases) -> bool:
     for use_case in use_cases:
         if not validate_text_length(
             use_case.get("title"), USE_CASE_TITLE_MAX_LENGTH
+        ):
+            return False
+
+        if not validate_text_length(
+            use_case.get("description"), USE_CASE_DESCRIPTION_MAX_LENGTH
         ):
             return False
 
@@ -721,7 +727,9 @@ def validate_solution_metadata(metadata: dict):
                 {
                     "code": "invalid-use-cases",
                     "message": "Use case titles must be "
-                    f"{USE_CASE_TITLE_MAX_LENGTH} characters or fewer.",
+                    f"{USE_CASE_TITLE_MAX_LENGTH} characters or fewer and "
+                    "descriptions must be "
+                    f"{USE_CASE_DESCRIPTION_MAX_LENGTH} characters or fewer.",
                 }
             ]
         )
