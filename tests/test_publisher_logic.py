@@ -139,6 +139,12 @@ class TestRegisterSolutionPackage:
 
         assert exc_info.value.errors[0]["code"] == "invalid-title"
 
+    def test_metadata_description_max_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"description": "a" * 2001})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-description"
+
     def test_metadata_platform_version_count_validation(self):
         with pytest.raises(ValidationError) as exc_info:
             validate_solution_metadata({"platform_version": []})

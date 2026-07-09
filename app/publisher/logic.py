@@ -46,6 +46,7 @@ EDITABLE_FIELDS = {
 SOLUTION_NAME_MAX_LENGTH = 40
 SOLUTION_TITLE_MAX_LENGTH = 40
 SOLUTION_SUMMARY_MAX_LENGTH = 500
+SOLUTION_DESCRIPTION_MAX_LENGTH = 2000
 SOLUTION_CATEGORIES_MIN = 1
 SOLUTION_CATEGORIES_MAX = 2
 COMPATIBILITY_VERSIONS_MIN = 1
@@ -681,6 +682,19 @@ def validate_solution_metadata(metadata: dict):
                     "code": "invalid-summary",
                     "message": "Summary is required and must be "
                     f"{SOLUTION_SUMMARY_MAX_LENGTH} characters or fewer.",
+                }
+            ]
+        )
+
+    if "description" in metadata and not validate_text_length(
+        metadata["description"], SOLUTION_DESCRIPTION_MAX_LENGTH
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-description",
+                    "message": "Description is required and must be "
+                    f"{SOLUTION_DESCRIPTION_MAX_LENGTH} characters or fewer.",
                 }
             ]
         )
