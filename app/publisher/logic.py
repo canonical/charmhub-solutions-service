@@ -44,10 +44,17 @@ EDITABLE_FIELDS = {
 }
 
 SOLUTION_NAME_MAX_LENGTH = 40
-SOLUTION_TITLE_MAX_LENGTH = 40
+SOLUTION_TITLE_MAX_LENGTH = 30
 SOLUTION_SUMMARY_MAX_LENGTH = 500
+SOLUTION_DESCRIPTION_MAX_LENGTH = 2000
+SOLUTION_ARCHITECTURE_EXPLANATION_MAX_LENGTH = 2000
 SOLUTION_CATEGORIES_MIN = 1
 SOLUTION_CATEGORIES_MAX = 2
+COMPATIBILITY_VERSIONS_MIN = 1
+COMPATIBILITY_VERSIONS_MAX = 3
+USE_CASE_TITLE_MAX_LENGTH = 30
+USE_CASE_DESCRIPTION_MAX_LENGTH = 500
+USEFUL_LINK_TITLE_MAX_LENGTH = 30
 SUPPORTED_PLATFORMS = {platform.value for platform in PlatformTypes}
 
 
@@ -132,6 +139,45 @@ def validate_solution_categories(categories) -> bool:
         <= len(categories)
         <= SOLUTION_CATEGORIES_MAX
     )
+
+
+def validate_list_count(items, min_items, max_items) -> bool:
+    return isinstance(items, list) and min_items <= len(items) <= max_items
+
+
+def validate_text_length(value, max_length) -> bool:
+    return bool(value) and len(value) <= max_length
+
+
+def validate_use_cases(use_cases) -> bool:
+    if not isinstance(use_cases, list):
+        return False
+
+    for use_case in use_cases:
+        if not validate_text_length(
+            use_case.get("title"), USE_CASE_TITLE_MAX_LENGTH
+        ):
+            return False
+
+        if not validate_text_length(
+            use_case.get("description"), USE_CASE_DESCRIPTION_MAX_LENGTH
+        ):
+            return False
+
+    return True
+
+
+def validate_useful_links(useful_links) -> bool:
+    if not isinstance(useful_links, list):
+        return False
+
+    for link in useful_links:
+        if not validate_text_length(
+            link.get("title"), USEFUL_LINK_TITLE_MAX_LENGTH
+        ):
+            return False
+
+    return True
 
 
 def register_solution_package(
@@ -634,6 +680,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-title",
+                    "field": "Title",
                     "message": "Title format is invalid. "
                     f"It must be {SOLUTION_TITLE_MAX_LENGTH} characters "
                     "or fewer and only contain letters, numbers, spaces, "
@@ -649,8 +696,105 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-summary",
+                    "field": "Summary",
                     "message": "Summary is required and must be "
                     f"{SOLUTION_SUMMARY_MAX_LENGTH} characters or fewer.",
+                }
+            ]
+        )
+
+    if "description" in metadata and not validate_text_length(
+        metadata["description"], SOLUTION_DESCRIPTION_MAX_LENGTH
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-description",
+                    "field": "Description",
+                    "message": "Description is required and must be "
+                    f"{SOLUTION_DESCRIPTION_MAX_LENGTH} characters or fewer.",
+                }
+            ]
+        )
+
+    if "architecture_explanation" in metadata and not validate_text_length(
+        metadata["architecture_explanation"],
+        SOLUTION_ARCHITECTURE_EXPLANATION_MAX_LENGTH,
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-architecture-explanation",
+                    "field": "Architecture explanation",
+                    "message": "Architecture explanation is required and "
+                    f"must be {SOLUTION_ARCHITECTURE_EXPLANATION_MAX_LENGTH} "
+                    "characters or fewer.",
+                }
+            ]
+        )
+
+    if "platform_version" in metadata and not validate_list_count(
+        metadata["platform_version"],
+        COMPATIBILITY_VERSIONS_MIN,
+        COMPATIBILITY_VERSIONS_MAX,
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-platform-version",
+                    "field": "Platform versions",
+                    "message": "Please provide between "
+                    f"{COMPATIBILITY_VERSIONS_MIN} and "
+                    f"{COMPATIBILITY_VERSIONS_MAX} "
+                    "platform versions.",
+                }
+            ]
+        )
+
+    if "juju_versions" in metadata and not validate_list_count(
+        metadata["juju_versions"],
+        COMPATIBILITY_VERSIONS_MIN,
+        COMPATIBILITY_VERSIONS_MAX,
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-juju-versions",
+                    "field": "Juju versions",
+                    "message": "Please provide between "
+                    f"{COMPATIBILITY_VERSIONS_MIN} and "
+                    f"{COMPATIBILITY_VERSIONS_MAX} "
+                    "Juju versions.",
+                }
+            ]
+        )
+
+    if "use_cases" in metadata and not validate_use_cases(
+        metadata["use_cases"]
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-use-cases",
+                    "field": "Use cases",
+                    "message": "Use case titles must be "
+                    f"{USE_CASE_TITLE_MAX_LENGTH} characters or fewer and "
+                    "descriptions must be "
+                    f"{USE_CASE_DESCRIPTION_MAX_LENGTH} characters or fewer.",
+                }
+            ]
+        )
+
+    if "useful_links" in metadata and not validate_useful_links(
+        metadata["useful_links"]
+    ):
+        raise ValidationError(
+            [
+                {
+                    "code": "invalid-useful-links",
+                    "field": "Useful links",
+                    "message": "Useful link text must be "
+                    f"{USEFUL_LINK_TITLE_MAX_LENGTH} characters or fewer.",
                 }
             ]
         )
@@ -660,6 +804,7 @@ def validate_solution_metadata(metadata: dict):
             [
                 {
                     "code": "invalid-categories",
+                    "field": "Categories",
                     "message": "Please select between "
                     f"{SOLUTION_CATEGORIES_MIN} and "
                     f"{SOLUTION_CATEGORIES_MAX} categories.",

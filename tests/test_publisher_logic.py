@@ -135,9 +135,90 @@ class TestRegisterSolutionPackage:
 
     def test_metadata_title_max_length_validation(self):
         with pytest.raises(ValidationError) as exc_info:
-            validate_solution_metadata({"title": "a" * 41})
+            validate_solution_metadata({"title": "a" * 31})
 
         assert exc_info.value.errors[0]["code"] == "invalid-title"
+        assert exc_info.value.errors[0]["field"] == "Title"
+
+    def test_metadata_description_max_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"description": "a" * 2001})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-description"
+
+    def test_metadata_architecture_explanation_max_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {"architecture_explanation": "a" * 2001}
+            )
+
+        assert (
+            exc_info.value.errors[0]["code"]
+            == "invalid-architecture-explanation"
+        )
+
+    def test_metadata_platform_version_count_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"platform_version": []})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-platform-version"
+
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {"platform_version": ["1", "2", "3", "4"]}
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-platform-version"
+
+    def test_metadata_juju_versions_count_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"juju_versions": []})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-juju-versions"
+
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata({"juju_versions": ["1", "2", "3", "4"]})
+
+        assert exc_info.value.errors[0]["code"] == "invalid-juju-versions"
+
+    def test_metadata_use_case_title_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {
+                    "use_cases": [
+                        {"title": "a" * 31, "description": "valid"}
+                    ]
+                }
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-use-cases"
+
+    def test_metadata_use_case_description_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {
+                    "use_cases": [
+                        {"title": "valid", "description": "a" * 501}
+                    ]
+                }
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-use-cases"
+
+    def test_metadata_useful_link_title_length_validation(self):
+        with pytest.raises(ValidationError) as exc_info:
+            validate_solution_metadata(
+                {
+                    "useful_links": [
+                        {
+                            "title": "a" * 31,
+                            "url": "https://example.com",
+                        }
+                    ]
+                }
+            )
+
+        assert exc_info.value.errors[0]["code"] == "invalid-useful-links"
 
     def test_metadata_categories_required(self):
         with pytest.raises(ValidationError) as exc_info:
