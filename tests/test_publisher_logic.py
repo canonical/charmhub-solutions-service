@@ -186,7 +186,7 @@ class TestRegisterSolutionPackage:
             validate_solution_metadata(
                 {
                     "use_cases": [
-                        {"title": "a" * 31, "description": "valid"}
+                        {"title": "a" * 61, "description": "valid"}
                     ]
                 }
             )
