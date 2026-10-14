@@ -1,3 +1,5 @@
+import secrets
+
 from flask import (
     Blueprint,
     render_template,
@@ -8,8 +10,14 @@ from flask import (
     session,
     request,
     flash,
+    abort,
 )
-from app.models import Solution, SolutionStatus, Publisher
+from app.models import (
+    Solution,
+    SolutionStatus,
+    Publisher,
+    Visibility,
+)
 from app.extensions import db
 from sqlalchemy.orm import joinedload
 from app.reviewer.logic import (
@@ -69,11 +77,22 @@ def status_check():
     return "OK", 200
 
 
-@dashboard_bp.route("/")
+@dashboard_bp.route("/", defaults={"archived": False})
+@dashboard_bp.route(
+    "/archived", endpoint="archived", defaults={"archived": True}
+)
 @dashboard_login_required
-def dashboard():
-    solutions_query = Solution.query.options(
+def dashboard(archived):
+    query = Solution.query.options(
         joinedload(Solution.publisher), joinedload(Solution.creator)
+    )
+    query = query.filter(
+        Solution.status == SolutionStatus.UNPUBLISHED
+        if archived
+        else Solution.status != SolutionStatus.UNPUBLISHED
+    )
+    solutions_query = query.order_by(
+        Solution.name, Solution.revision.desc()
     ).all()
 
     published_solutions = []
@@ -106,13 +125,17 @@ def dashboard():
         elif solution.status == SolutionStatus.UNPUBLISHED:
             unpublished_solutions.append(solution_data)
 
+    if archived:
+        return render_template(
+            "archived.html",
+            unpublished_solutions=unpublished_solutions,
+        )
     return render_template(
         "dashboard.html",
         published_solutions=published_solutions,
         pending_metadata_review_solutions=pending_metadata_review_solutions,
         draft_solutions=draft_solutions,
         pending_name_review_solutions=pending_name_review_solutions,
-        unpublished_solutions=unpublished_solutions,
     )
 
 
@@ -164,6 +187,62 @@ def approve_metadata(name):
         return jsonify({"error": "Solution not found"}), 404
     if current_app.config.get("TESTING"):
         return jsonify(solution)
+    return redirect(url_for("dashboard.dashboard"))
+
+
+@dashboard_bp.route(
+    "/<string:name>/unpublish",
+    methods=["GET", "POST"],
+)
+@dashboard_login_required
+def unpublish_solution(name):
+    reviewer_id = get_reviewer_id()
+    if not reviewer_id:
+        abort(403)
+
+    if request.method == "POST":
+        token = session.get("solution_action_csrf_token")
+        if not token or not secrets.compare_digest(
+            token.encode(), request.form.get("csrf_token", "").encode()
+        ):
+            abort(400, description="Invalid CSRF token")
+
+    query = Solution.query.filter_by(
+        name=name, status=SolutionStatus.PUBLISHED
+    )
+    if request.method == "POST":
+        solution_id = request.form.get("solution_id", type=int)
+        if solution_id is None:
+            abort(400, description="Solution revision is required")
+        query = query.filter_by(id=solution_id).with_for_update()
+    solution = query.order_by(Solution.revision.desc()).first()
+    if not solution:
+        if request.method == "POST":
+            abort(409, description="This revision is no longer published")
+        abort(404)
+
+    if request.method == "GET":
+        if "solution_action_csrf_token" not in session:
+            session["solution_action_csrf_token"] = secrets.token_hex(32)
+        return render_template(
+            "confirm_unpublish.html",
+            solution=solution,
+            csrf_token=session["solution_action_csrf_token"],
+        )
+
+    try:
+        solution.status = SolutionStatus.UNPUBLISHED
+        solution.visibility = Visibility.PRIVATE
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+
+    current_app.logger.info(
+        "Reviewer %s unpublished solution %s revision %s",
+        reviewer_id, name, solution.revision,
+    )
+    flash(f"Solution '{name}' unpublished successfully", "positive")
     return redirect(url_for("dashboard.dashboard"))
 
 

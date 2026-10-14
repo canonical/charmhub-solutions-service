@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% from "macros.html" import solution_table %}
+{% block title %}Archived{% endblock %}
+{% block meta_title %}Archived{% endblock %}
+{% block page_content %}
+<div class="p-panel">
+  <div class="p-panel__header">
+    <h4 class="p-panel__title">Archived Solutions</h4>
+  </div>
+  <div class="p-panel__content">
+    <div class="u-fixed-width">
+      <p>Unpublished revisions are stored here, separate from active solutions.</p>
+      {{ solution_table(unpublished_solutions, "Unpublished", charmhub_url) }}
+    </div>
+  </div>
+</div>
+{% endblock %}

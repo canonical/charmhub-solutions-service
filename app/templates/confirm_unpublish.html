@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block title %}Unpublish Solution{% endblock %}
+{% block meta_title %}Unpublish Solution{% endblock %}
+{% block page_content %}
+<div class="p-panel">
+  <div class="p-panel__header">
+    <h3 class="p-panel__title">Unpublish {{ solution.title }}?</h3>
+  </div>
+  <div class="p-panel__content">
+    <div class="u-fixed-width">
+      <p>This will remove <strong>{{ solution.name }}</strong> from public listings and solution pages on Charmhub. Unpublished revisions will be retained on the Archived page.</p>
+      <p><strong>Revision:</strong> {{ solution.revision }}</p>
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="solution_id" value="{{ solution.id }}">
+        <a href="{{ url_for('dashboard.dashboard') }}" class="p-button">Cancel</a>
+        <button type="submit" class="p-button">Unpublish solution</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

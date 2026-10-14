@@ -62,10 +62,10 @@ def test_dashboard_with_login(client):
     with patch("app.dashboard.routes.Solution.query") as mock_query, patch(
         "app.dashboard.routes.render_template"
     ) as mock_render:
-        mock_query.options.return_value.all.return_value = []
+        mock_query.options.return_value.filter.return_value.order_by.return_value.all.return_value = []
         mock_render.return_value = "Dashboard HTML"
         response = client.get("/")
         assert response.status_code == 200
         mock_render.assert_called_once()
         assert "draft_solutions" in mock_render.call_args.kwargs
-        assert "unpublished_solutions" in mock_render.call_args.kwargs
+        assert "unpublished_solutions" not in mock_render.call_args.kwargs

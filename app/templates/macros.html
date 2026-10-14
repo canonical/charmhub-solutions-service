@@ -9,7 +9,7 @@
           <th style="width: 12%">Last Updated</th>
           <th>Publisher</th>
           <th>Creator</th>
-          <th>Actions</th>
+          <th style="width: 25%">Actions</th>
         </tr>
     </thead>
     {% if solutions %}
@@ -17,7 +17,7 @@
         {% for solution in solutions %}
         <tr>
             <td>
-              {% if solution.status == 'pending_name_review' or solution.status == 'draft' %}
+              {% if solution.status != 'published' %}
                 {{ solution.title }}
               {% else %}
                 <a href="{{ charmhub_url }}/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a>
@@ -32,18 +32,25 @@
               <p><code>{{ solution.creator_mattermost }}</code></p>
               {% endif %}
             </td>
-            <td>
-              {% if solution.status != 'draft' %}
+            <td class="has-overflow">
+              {% if solution.status == 'unpublished' %}
+              <span class="p-status-label">Unpublished</span>
+              {% else %}
+              {% if solution.status in ['published', 'pending_name_review', 'pending_metadata_review'] %}
               <a
                 href="{{ charmhub_url }}/solutions/preview/{{ solution.hash }}"
                 target="_blank"
-                class="p-button--base is-dense"
+                class="p-button--base is-dense u-no-margin"
               >
                 Preview
               </a>
               {% endif %}
               {% if solution.status == 'pending_name_review' or solution.status == 'pending_metadata_review' %}
-              <a href="{{ url_for('dashboard.review_solution', name=solution.name) }}" class="p-button--base is-dense">Review</a>
+                <a href="{{ url_for('dashboard.review_solution', name=solution.name) }}" class="p-button--base is-dense u-no-margin">Review</a>
+              {% endif %}
+              {% if solution.status == 'published' %}
+                <a href="{{ url_for('dashboard.unpublish_solution', name=solution.name) }}" class="p-button--base is-dense u-no-margin">Unpublish</a>
+              {% endif %}
               {% endif %}
             </td>
         </tr>
