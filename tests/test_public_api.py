@@ -1,9 +1,17 @@
 import pytest
 from unittest.mock import patch, Mock
 from flask import Flask
+from app.extensions import db
 from app.public.api import public_bp
 from app.public.logic import get_published_solution_by_hash
-from app.models import SolutionStatus
+from app.models import (
+    Creator,
+    PlatformTypes,
+    Publisher,
+    Solution,
+    SolutionStatus,
+    Visibility,
+)
 
 
 @pytest.fixture
@@ -12,9 +20,14 @@ def app():
     Create a Flask app for testing.
     """
     app = Flask(__name__)
+    app.config.update(TESTING=True, SQLALCHEMY_DATABASE_URI="sqlite://")
+    db.init_app(app)
     app.register_blueprint(public_bp, url_prefix="/api")
-    app.app_context().push()
-    return app
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.session.remove()
+        db.drop_all()
 
 
 @pytest.fixture
@@ -135,3 +148,42 @@ def test_get_published_solution_by_hash_serves_draft(
 
     assert result == {"status": "draft"}
     mock_serialize_public_solution.assert_called_once_with(draft_solution)
+
+
+@pytest.mark.parametrize("visibility", [Visibility.PUBLIC, Visibility.PRIVATE])
+def test_published_preview_respects_discovery_visibility(client, visibility):
+    solution = Solution(
+        name="data-mesh",
+        hash="previewhash",
+        revision=1,
+        title="Data Mesh",
+        status=SolutionStatus.PUBLISHED,
+        visibility=visibility,
+        platform=PlatformTypes.KUBERNETES,
+        publisher=Publisher(
+            publisher_id="team", username="team", display_name="Team"
+        ),
+        creator=Creator(email="creator@example.com"),
+    )
+    db.session.add(solution)
+    db.session.commit()
+
+    preview = client.get("/api/solutions/preview/previewhash")
+    assert preview.status_code == 200
+    assert preview.get_json()["name"] == "data-mesh"
+    assert "creator" not in preview.get_json()
+    assert "approved_by" not in preview.get_json()
+
+    listed = client.get("/api/solutions")
+    search = client.get("/api/solutions/search?q=Data")
+    by_name = client.get("/api/solutions/data-mesh")
+    assert listed.status_code == 200
+    assert search.status_code == 200
+    if visibility == Visibility.PUBLIC:
+        assert [item["name"] for item in listed.get_json()] == ["data-mesh"]
+        assert [item["name"] for item in search.get_json()] == ["data-mesh"]
+        assert by_name.status_code == 200
+    else:
+        assert listed.get_json() == []
+        assert search.get_json() == []
+        assert by_name.status_code == 404
