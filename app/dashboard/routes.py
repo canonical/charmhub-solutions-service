@@ -260,7 +260,7 @@ def set_solution_visibility(name):
     visibility = Visibility(visibility)
     solution_id = request.form.get("solution_id", type=int)
     if solution_id is None:
-        abort(400, description="Solution revision is required")
+        abort(400, description="Solution ID is required")
 
     solutions = (
         Solution.query.filter(

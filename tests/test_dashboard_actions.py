@@ -154,16 +154,16 @@ def test_archive_shows_newest_revision_first(client):
 
 
 def test_private_solution_is_hidden_publicly_but_previewable(client):
+    solution = Solution.query.filter_by(revision=2).one()
     response = client.post(
-        "/solution/visibility",
+        f"/{solution.name}/visibility",
         data={
-            "solution_id": Solution.query.filter_by(revision=2).one().id,
+            "solution_id": solution.id,
             "visibility": "private",
         },
     )
 
     assert response.status_code == 302
-    solution = Solution.query.filter_by(revision=2).one()
     assert solution.status == SolutionStatus.PUBLISHED
     assert solution.visibility == Visibility.PRIVATE
     assert get_published_solution_by_name("solution") is None
@@ -174,10 +174,11 @@ def test_private_solution_is_hidden_publicly_but_previewable(client):
 
 
 def test_publishing_saved_draft_preserves_private_visibility(client):
+    solution = Solution.query.filter_by(revision=2).one()
     client.post(
-        "/solution/visibility",
+        f"/{solution.name}/visibility",
         data={
-            "solution_id": Solution.query.filter_by(revision=2).one().id,
+            "solution_id": solution.id,
             "visibility": "private",
         },
     )
