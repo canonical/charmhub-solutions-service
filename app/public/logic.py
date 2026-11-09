@@ -61,7 +61,7 @@ def get_published_solution_by_hash(hash: str):
     if not solution:
         return None
 
-    # Hash-based previews also allow published solutions hidden from discovery.
+    # published revisions previewable by hash, even when private
     if solution.status == SolutionStatus.PUBLISHED:
         return serialize_public_solution(solution)
 
