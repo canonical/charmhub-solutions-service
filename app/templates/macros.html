@@ -17,7 +17,7 @@
         {% for solution in solutions %}
         <tr>
             <td>
-              {% if solution.status != 'published' %}
+              {% if solution.status != 'published' or solution.visibility != 'public' %}
                 {{ solution.title }}
               {% else %}
                 <a href="{{ charmhub_url }}/solutions/{{ solution.name }}" target="_blank">{{ solution.title }}</a>
@@ -36,21 +36,33 @@
               {% if solution.status == 'unpublished' %}
               <span class="p-status-label">Unpublished</span>
               {% else %}
-              {% if solution.status in ['published', 'pending_name_review', 'pending_metadata_review'] %}
-              <a
-                href="{{ charmhub_url }}/solutions/preview/{{ solution.hash }}"
-                target="_blank"
-                class="p-button--base is-dense u-no-margin"
-              >
-                Preview
-              </a>
-              {% endif %}
-              {% if solution.status == 'pending_name_review' or solution.status == 'pending_metadata_review' %}
-                <a href="{{ url_for('dashboard.review_solution', name=solution.name) }}" class="p-button--base is-dense u-no-margin">Review</a>
-              {% endif %}
-              {% if solution.status == 'published' %}
-                <a href="{{ url_for('dashboard.unpublish_solution', name=solution.name) }}" class="p-button--base is-dense u-no-margin">Unpublish</a>
-              {% endif %}
+              {% set is_published = solution.status == 'published' %}
+              {% set is_pending = solution.status in ['pending_name_review', 'pending_metadata_review'] %}
+              {% set target_visibility = 'private' if solution.visibility == 'public' else 'public' %}
+              <ul class="p-list u-no-margin--bottom">
+                {% if is_published or is_pending %}
+                <li class="p-list__item">
+                  <a href="{{ charmhub_url }}/solutions/preview/{{ solution.hash }}" target="_blank" class="p-button--base u-no-margin">Preview</a>
+                </li>
+                {% endif %}
+                {% if is_pending %}
+                <li class="p-list__item">
+                  <a href="{{ url_for('dashboard.review_solution', name=solution.name) }}" class="p-button--base u-no-margin">Review</a>
+                </li>
+                {% endif %}
+                {% if is_published %}
+                <li class="p-list__item">
+                  <form method="post" action="{{ url_for('dashboard.set_solution_visibility', name=solution.name) }}" class="u-no-margin--bottom">
+                    <input type="hidden" name="solution_id" value="{{ solution.id }}">
+                    <input type="hidden" name="visibility" value="{{ target_visibility }}">
+                    <button type="submit" class="p-button--base u-no-margin">Make {{ target_visibility }}</button>
+                  </form>
+                </li>
+                <li class="p-list__item">
+                  <a href="{{ url_for('dashboard.unpublish_solution', name=solution.name) }}" class="p-button--base u-no-margin">Unpublish</a>
+                </li>
+                {% endif %}
+              </ul>
               {% endif %}
             </td>
         </tr>

@@ -61,11 +61,8 @@ def get_published_solution_by_hash(hash: str):
     if not solution:
         return None
 
-    # if solution is published and public, return it
-    if (
-        solution.status == SolutionStatus.PUBLISHED
-        and solution.visibility == Visibility.PUBLIC
-    ):
+    # published revisions previewable by hash, even when private
+    if solution.status == SolutionStatus.PUBLISHED:
         return serialize_public_solution(solution)
 
     # allow previewing pending and draft solutions
