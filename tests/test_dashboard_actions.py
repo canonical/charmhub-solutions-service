@@ -12,8 +12,14 @@ from app.models import (
     Visibility,
 )
 from app.public.api import public_bp
-from app.public.logic import get_published_solution_by_name
+from app.public.logic import (
+    get_all_published_solutions,
+    get_published_solution_by_hash,
+    get_published_solution_by_name,
+    search_published_solutions,
+)
 from app.publisher.api import publisher_bp
+from app.publisher.logic import update_draft_solution
 
 
 @pytest.fixture
@@ -145,3 +151,41 @@ def test_archive_shows_newest_revision_first(client):
     response = client.get("/archived")
 
     assert response.data.index(b"Draft revision") < response.data.index(b"Old revision")
+
+
+def test_private_solution_is_hidden_publicly_but_previewable(client):
+    solution = Solution.query.filter_by(revision=2).one()
+    response = client.post(
+        f"/{solution.name}/visibility",
+        data={
+            "solution_id": solution.id,
+            "visibility": "private",
+        },
+    )
+
+    assert response.status_code == 302
+    assert solution.status == SolutionStatus.PUBLISHED
+    assert solution.visibility == Visibility.PRIVATE
+    assert get_published_solution_by_name("solution") is None
+    assert get_all_published_solutions() == []
+    assert search_published_solutions("Live") == []
+    assert get_published_solution_by_hash("hash2") is not None
+    assert b"/solutions/preview/hash2" in client.get("/").data
+
+
+def test_publishing_saved_draft_preserves_private_visibility(client):
+    solution = Solution.query.filter_by(revision=2).one()
+    client.post(
+        f"/{solution.name}/visibility",
+        data={
+            "solution_id": solution.id,
+            "visibility": "private",
+        },
+    )
+    draft = Solution.query.filter_by(revision=3).one()
+
+    update_draft_solution(draft, {})
+
+    assert draft.status == SolutionStatus.PUBLISHED
+    assert draft.visibility == Visibility.PRIVATE
+    assert get_published_solution_by_name("solution") is None

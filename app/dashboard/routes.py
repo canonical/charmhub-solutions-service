@@ -104,6 +104,7 @@ def dashboard(archived):
     for solution in solutions_query:
         solution_data = {
             "name": solution.name,
+            "id": solution.id,
             "title": solution.title,
             "revision": solution.revision,
             "status": solution.status.value,
@@ -243,6 +244,57 @@ def unpublish_solution(name):
         reviewer_id, name, solution.revision,
     )
     flash(f"Solution '{name}' unpublished successfully", "positive")
+    return redirect(url_for("dashboard.dashboard"))
+
+
+@dashboard_bp.route("/<string:name>/visibility", methods=["POST"])
+@dashboard_login_required
+def set_solution_visibility(name):
+    reviewer_id = get_reviewer_id()
+    if not reviewer_id:
+        abort(403)
+
+    visibility = request.form.get("visibility")
+    if visibility not in [Visibility.PUBLIC.value, Visibility.PRIVATE.value]:
+        abort(400, description="Visibility must be public or private")
+    visibility = Visibility(visibility)
+    solution_id = request.form.get("solution_id", type=int)
+    if solution_id is None:
+        abort(400, description="Solution ID is required")
+
+    solutions = (
+        Solution.query.filter(
+            Solution.name == name,
+            Solution.status != SolutionStatus.UNPUBLISHED,
+        )
+        .with_for_update()
+        .all()
+    )
+    solution = next(
+        (
+            revision for revision in solutions
+            if revision.id == solution_id
+            and revision.status == SolutionStatus.PUBLISHED
+        ),
+        None,
+    )
+    if not solution:
+        abort(409, description="This revision is no longer published")
+
+    try:
+        # keep saved updates aligned so publishing a draft preserves visibility
+        for revision in solutions:
+            revision.visibility = visibility
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+
+    current_app.logger.info(
+        "Reviewer %s made solution %s revision %s %s",
+        reviewer_id, name, solution.revision, visibility.value,
+    )
+    flash(f"Solution '{name}' is now {visibility.value}", "positive")
     return redirect(url_for("dashboard.dashboard"))
 
 
