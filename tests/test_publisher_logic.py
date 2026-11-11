@@ -149,7 +149,7 @@ class TestRegisterSolutionPackage:
     def test_metadata_architecture_explanation_max_length_validation(self):
         with pytest.raises(ValidationError) as exc_info:
             validate_solution_metadata(
-                {"architecture_explanation": "a" * 2001}
+                {"architecture_explanation": "a" * 7001}
             )
 
         assert (
