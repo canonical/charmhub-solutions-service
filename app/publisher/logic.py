@@ -47,6 +47,7 @@ SOLUTION_NAME_MAX_LENGTH = 40
 SOLUTION_TITLE_MAX_LENGTH = 30
 SOLUTION_SUMMARY_MAX_LENGTH = 500
 SOLUTION_DESCRIPTION_MAX_LENGTH = 2000
+SOLUTION_ARCHITECTURE_EXPLANATION_MAX_LENGTH = 7000
 SOLUTION_CATEGORIES_MIN = 1
 SOLUTION_CATEGORIES_MAX = 2
 COMPATIBILITY_VERSIONS_MIN = 1
@@ -716,16 +717,18 @@ def validate_solution_metadata(metadata: dict):
             ]
         )
 
-    if (
-        "architecture_explanation" in metadata
-        and not metadata["architecture_explanation"]
+    if "architecture_explanation" in metadata and not validate_text_length(
+        metadata["architecture_explanation"],
+        SOLUTION_ARCHITECTURE_EXPLANATION_MAX_LENGTH,
     ):
         raise ValidationError(
             [
                 {
                     "code": "invalid-architecture-explanation",
                     "field": "Architecture explanation",
-                    "message": "Architecture explanation is required.",
+                    "message": "Architecture explanation is required and "
+                    f"must be {SOLUTION_ARCHITECTURE_EXPLANATION_MAX_LENGTH} "
+                    "characters or fewer.",
                 }
             ]
         )
